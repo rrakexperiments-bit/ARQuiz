@@ -204,6 +204,27 @@
       color: var(--lk-parchment); line-height: 1.4;
     }
 
+    /* ── Question type badge — "Heritage Quiz" pill at top of card ── */
+    .q-type-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--lk-primary);
+      color: #fff;
+      font-size: 10px; font-weight: 800;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      padding: 3px 9px 3px 5px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .q-type-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 50%;
+      font-size: 10px; font-weight: 900;
+      flex-shrink: 0;
+    }
+
     /* ── Answer grid (bottom overlay) ── */
     #quiz-opts-wrap {
       position: fixed;
@@ -243,12 +264,13 @@
     .opt.dim     { opacity: 0.25; }
     .opt-ltr {
       flex-shrink: 0;
-      width: 22px; height: 22px;
+      width: 26px; height: 26px;
       border-radius: 6px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.95);
       display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 800;
-      color: rgba(255,255,255,0.9);
+      font-size: 11px; font-weight: 900;
+      color: #1A1008;
+      letter-spacing: 0;
     }
 
     /* ── Continue button — replaced by popup, always hidden ── */
@@ -481,6 +503,9 @@
 
 <!-- Question card — floats at top -->
 <div id="quiz-q" role="region" aria-label="Quiz question">
+  <div class="q-type-badge" aria-hidden="true">
+    <span class="q-type-icon">?</span>Heritage Quiz
+  </div>
   <div class="q-meta">
     <span class="q-num"         id="q-num"></span>
     <span class="q-score-badge" id="q-score"></span>

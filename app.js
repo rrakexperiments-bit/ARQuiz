@@ -20,7 +20,20 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
    Maps JSON fields → internal { q, opts, ans, ok, bad } shape.
    ans: index into opts[] matching correct_answer string.
 ═══════════════════════════════════════════════════════════════ */
-let QUIZ = [];
+let QUIZ = [];          // full pool loaded from JSON
+let sessionQuiz = [];  // 5-question random subset for the current session
+
+const SESSION_SIZE = 5;
+
+/* Fisher-Yates shuffle — returns a new shuffled copy */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 async function loadQuiz() {
   const res  = await fetch('./quiz_content_full_v2.json');
@@ -38,8 +51,8 @@ async function loadQuiz() {
     };
   });
 
-  // Patch the "out of N" label now that we know the total
-  document.querySelector('.score-of').textContent = `out of ${QUIZ.length}`;
+  // Score ring always shows out of SESSION_SIZE (5), not the full pool
+  document.querySelector('.score-of').textContent = `out of ${SESSION_SIZE}`;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -348,6 +361,7 @@ let qIdx = 0, score = 0, answered = false;
 
 function openQuiz() {
   qIdx = 0; score = 0; answered = false;
+  sessionQuiz = shuffle(QUIZ).slice(0, SESSION_SIZE);   // fresh random set each session
   document.getElementById('score-overlay').className = '';
   renderQuestion();
   document.getElementById('quiz-q').classList.add('show');
@@ -356,12 +370,12 @@ function openQuiz() {
 
 function renderQuestion() {
   answered = false;
-  const d    = QUIZ[qIdx];
+  const d    = sessionQuiz[qIdx];
   const ltrs = ['A', 'B', 'C', 'D'];
   const cls  = ['a', 'b', 'c', 'd'];
 
-  document.getElementById('q-num').textContent   = `Q ${qIdx + 1} / ${QUIZ.length}`;
-  document.getElementById('q-score').textContent = `${score} / ${QUIZ.length}`;
+  document.getElementById('q-num').textContent   = `Q ${qIdx + 1} / ${sessionQuiz.length}`;
+  document.getElementById('q-score').textContent = `${score} / ${sessionQuiz.length}`;
   document.getElementById('q-text').textContent  = d.q;
 
   const el = document.getElementById('opts');
@@ -379,7 +393,7 @@ function pickAnswer(i) {
   if (answered) return;
   answered = true;
 
-  const d    = QUIZ[qIdx];
+  const d    = sessionQuiz[qIdx];
   const btns = document.querySelectorAll('.opt');
 
   btns.forEach(b => b.classList.add('locked'));
@@ -388,13 +402,13 @@ function pickAnswer(i) {
     btns[i].classList.add('correct');
     btns.forEach((b, j) => { if (j !== i) b.classList.add('dim'); });
     score++;
-    document.getElementById('q-score').textContent = `${score} / ${QUIZ.length}`;
+    document.getElementById('q-score').textContent = `${score} / ${sessionQuiz.length}`;
     showFeedbackPopup(true, d.ok);
   } else {
     btns[i].classList.add('wrong');
     btns[d.ans].classList.add('correct');
     btns.forEach((b, j) => { if (j !== i && j !== d.ans) b.classList.add('dim'); });
-    document.getElementById('q-score').textContent = `${score} / ${QUIZ.length}`;
+    document.getElementById('q-score').textContent = `${score} / ${sessionQuiz.length}`;
     showFeedbackPopup(false, d.bad);
   }
 }
@@ -425,7 +439,7 @@ function showFeedbackPopup(isCorrect, msg) {
 
 function advance() {
   qIdx++;
-  if (qIdx >= QUIZ.length) {
+  if (qIdx >= sessionQuiz.length) {
     showScore();
   } else {
     renderQuestion();
@@ -447,7 +461,7 @@ function showScore() {
   document.getElementById('quiz-q').classList.remove('show');
   document.getElementById('quiz-opts-wrap').classList.remove('show');
 
-  const { title, sub } = getScoreMessage(score, QUIZ.length);
+  const { title, sub } = getScoreMessage(score, sessionQuiz.length);
   document.getElementById('score-big').textContent   = score;
   document.getElementById('score-title').textContent = title;
   document.getElementById('score-sub').textContent   = sub;
@@ -462,12 +476,13 @@ function showScore() {
 
   // double-RAF so the CSS transition fires after element becomes visible
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    arc.style.strokeDashoffset = `${circ * (1 - score / QUIZ.length)}`;
+    arc.style.strokeDashoffset = `${circ * (1 - score / sessionQuiz.length)}`;
   }));
 }
 
 function retryQuiz() {
   qIdx = 0; score = 0; answered = false;
+  sessionQuiz = shuffle(QUIZ).slice(0, SESSION_SIZE);   // new random set on retry
   document.getElementById('score-overlay').className = '';
   document.getElementById('feedback-popup').classList.remove('show');
   renderQuestion();
