@@ -1,0 +1,116 @@
+{
+    "quiz_title": "Chronicles in Stone: The Akshara Bhandara AR Quiz",
+    "target_audience": "Learners aged 12-18",
+    "questions": [
+        {
+            "question_number": 1,
+            "question": "What is the traditional name given to inscriptions carved on stone in Karnataka?",
+            "Option A": "Shila Shasana",
+            "Option B": "Tamra Shasana",
+            "Option C": "Kavana",
+            "Option D": "Talagari",
+            "correct_answer": "Shila Shasana",
+            "rationale": "In Kannada, 'Shila' means stone and 'Shasana' means record or command.",
+            "hint": "Think of the Kannada word for 'stone'."
+        },
+        {
+            "question_number": 2,
+            "question": "On an inscription stone, you often see carvings of the Sun and the Moon. What do these symbols represent?",
+            "Option A": "The time of day the stone was carved",
+            "Option B": "The eternal nature of the grant or record",
+            "Option C": "The astrological sign of the reigning king",
+            "Option D": "A map showing direction",
+            "correct_answer": "The eternal nature of the grant or record",
+            "rationale": "They signify that the grant is valid 'as long as the sun and moon exist'.",
+            "hint": "Consider how long these celestial bodies last."
+        },
+        {
+            "question_number": 3,
+            "question": "If you find a 'Veeragallu' (Hero Stone), what story is it most likely telling?",
+            "Option A": "A list of taxes paid",
+            "Option B": "The heroic sacrifice of an individual",
+            "Option C": "A recipe for traditional medicine",
+            "Option D": "The family tree of a merchant",
+            "correct_answer": "The heroic sacrifice of an individual",
+            "rationale": "'Veera' means hero; these honor those who died defending their community.",
+            "hint": "Focus on the meaning of 'Veera'."
+        },
+        {
+            "question_number": 4,
+            "question": "The 'Halmidi Inscription' is famous because:",
+            "Option A": "It is the first record of a cricket match",
+            "Option B": "It is the earliest known full-length Kannada inscription",
+            "Option C": "It contains a secret map",
+            "Option D": "It is carved from wood",
+            "correct_answer": "It is the earliest known full-length Kannada inscription",
+            "rationale": "Dating to ~450 CE, it is a milestone for the Kannada language.",
+            "hint": "Think about the timeline of the language."
+        },
+        {
+            "question_number": 5,
+            "question": "Why is it important to 3D scan these stones today?",
+            "Option A": "To turn them into construction material",
+            "Option B": "To create a digital backup before they erode",
+            "Option C": "To find hidden gold",
+            "Option D": "To change the script to English",
+            "correct_answer": "To create a digital backup before they erode",
+            "rationale": "3D scanning preserves the text exactly as it is for future study.",
+            "hint": "Think about weather damage over centuries."
+        },
+        {
+            "question_number": 6,
+            "question": "In ancient inscriptions, what is a 'Turugol' stone specifically associated with?",
+            "Option A": "Defending against a tiger attack",
+            "Option B": "Defending the village cattle from being stolen",
+            "Option C": "Documenting the birth of a prince",
+            "Option D": "Recording the construction of a new well",
+            "correct_answer": "Defending the village cattle from being stolen",
+            "rationale": "'Turu' refers to cattle; these stones honor those who died protecting the community's wealth.",
+            "hint": "Identify the meaning of the word 'Turu'."
+        },
+        {
+            "question_number": 7,
+            "question": "What language and script are the majority of the inscription stones found in Bengaluru written in?",
+            "Option A": "Sanskrit in Devanagari script",
+            "Option B": "Kannada language and Kannada script",
+            "Option C": "English in Latin script",
+            "Option D": "Greek in Attic script",
+            "correct_answer": "Kannada language and Kannada script",
+            "rationale": "As the native language of the region, Kannada has been used for centuries for local records.",
+            "hint": "Consider the local language spoken in Karnataka."
+        },
+        {
+            "question_number": 8,
+            "question": "The Byadarahalli inscription (1336 CE) features a warrior fighting a tiger. Which dynasty used this as their royal emblem?",
+            "Option A": "The Cholas",
+            "Option B": "The Hoysalas",
+            "Option C": "The Mughals",
+            "Option D": "The Pandyas",
+            "correct_answer": "The Hoysalas",
+            "rationale": "The legend of 'Sala' fighting the tiger became the iconic emblem of the Hoysala Empire.",
+            "hint": "Recall the legend of the boy named 'Sala'."
+        },
+        {
+            "question_number": 9,
+            "question": "If an inscription mentions a 'Nadu' and a 'Gavu\u1e0da', what is it describing?",
+            "Option A": "A religious ritual involving fire",
+            "Option B": "Local administration and leadership",
+            "Option C": "A warning about wild animals",
+            "Option D": "A gravestone for a poet",
+            "correct_answer": "Local administration and leadership",
+            "rationale": "'Nadu' refers to a district and 'Gavu\u1e0da' was a title for a village head or leader.",
+            "hint": "These words are still used to describe regions and leaders."
+        },
+        {
+            "question_number": 10,
+            "question": "When an inscription mentions 'Shapashaya' at the end, what is its purpose?",
+            "Option A": "Naming the carver's children",
+            "Option B": "Issuing a warning or curse to protect the grant",
+            "Option C": "Listing the price of the stone",
+            "Option D": "A list of temple songs",
+            "correct_answer": "Issuing a warning or curse to protect the grant",
+            "rationale": "This 'punishment clause' ensured people respected the land donation for generations.",
+            "hint": "It serves as a deterrent to protect the record."
+        }
+    ]
+}
