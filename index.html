@@ -1,0 +1,1096 @@
+<!-- Lokakavya Heritage AR Experience
+     Object: Hero Stone (Veeragallu), Karnataka
+     3D model: Avocado.glb (placeholder) — replace with herostone.glb
+     Avatar:   cesiumman.glb
+     Built with: Three.js 0.150.1 (markerless surface AR)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Lokakavya — Heritage AR Experience</title>
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --lk-primary:   #B5451B;
+      --lk-gold:      #F0C078;
+      --lk-ink:       #1A1008;
+      --lk-parchment: #FAF0DC;
+      --lk-stone:     #7A6E60;
+      --lk-correct:   #2A9D5C;
+      --lk-wrong:     #C0392B;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Focus visible outline on all interactive elements ── */
+    :focus-visible {
+      outline: 2px solid var(--lk-gold);
+      outline-offset: 2px;
+    }
+
+    /* ── Camera feed ── */
+    #video {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    /* ── Three.js AR canvas (transparent overlay) ── */
+    #ar-canvas {
+      position: fixed; inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ── Hit-test stage (captures mouse / touch for reticle + tap) ── */
+    #ar-stage {
+      position: fixed; inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      cursor: crosshair;
+    }
+
+    /* ── AR Loader overlay — shown while scanning for surface ── */
+    #ar-loader {
+      position: fixed; inset: 0;
+      z-index: 5;
+      display: none;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 18px;
+      pointer-events: none;
+    }
+
+    .loader-pillar {
+      width: 36px; height: 110px;
+      background: var(--lk-primary);
+      border-radius: 6px 6px 2px 2px;
+      position: relative;
+      animation: pillar-pulse 1.5s ease-in-out infinite;
+    }
+    .loader-pillar::before {
+      content: ''; position: absolute; top: -26px; left: 50%;
+      transform: translateX(-50%);
+      width: 46px; height: 26px;
+      background: var(--lk-gold);
+      border-radius: 50% 50% 4px 4px;
+    }
+    .loader-pillar::after {
+      content: ''; position: absolute; bottom: -8px; left: 50%;
+      transform: translateX(-50%);
+      width: 54px; height: 10px;
+      background: var(--lk-stone);
+      border-radius: 2px;
+    }
+    @keyframes pillar-pulse {
+      0%, 100% { transform: scaleY(1); opacity: 0.8; }
+      50%       { transform: scaleY(1.05); opacity: 1; }
+    }
+
+    .loader-label {
+      color: var(--lk-parchment);
+      font-size: 14px;
+      letter-spacing: .4px;
+      text-align: center;
+    }
+    .loader-bar-track {
+      width: 180px; height: 3px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 2px; overflow: hidden;
+    }
+    .loader-bar-fill {
+      width: 40%; height: 100%;
+      background: var(--lk-gold);
+      border-radius: 2px;
+      animation: bar-slide 1.2s ease-in-out infinite;
+    }
+    @keyframes bar-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+
+    /* ── Exit button — top-right, always visible after landing dismisses ── */
+    #exit-btn {
+      position: fixed; top: 14px; right: 14px;
+      z-index: 300;
+      background: rgba(26,16,8,0.7);
+      color: var(--lk-parchment);
+      border: 1px solid var(--lk-stone);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      min-height: 48px;
+      cursor: pointer;
+      display: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── HUD ── */
+    #hud {
+      position: fixed; top: 22px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      transition: opacity .5s;
+    }
+    #scan-ring {
+      width: 64px; height: 64px;
+      border: 2.5px solid rgba(255,255,255,.12);
+      border-top-color: var(--lk-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #status-pill {
+      background: var(--lk-ink);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--lk-parchment);
+      font-size: 13px;
+      letter-spacing: .4px;
+      padding: 7px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--lk-stone);
+      white-space: nowrap;
+    }
+
+    /* ── Question card (top overlay) ── */
+    #quiz-q {
+      position: fixed;
+      top: 18px; left: 14px; right: 14px;
+      z-index: 30;
+      background: rgba(26,16,8,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(240,192,120,0.25);
+      border-radius: 16px;
+      padding: 11px 14px 10px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity .3s, transform .3s;
+    }
+    #quiz-q.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .q-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px;
+    }
+    .q-num {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.1px;
+      color: rgba(240,192,120,0.5);
+    }
+    .q-score-badge {
+      font-size: 11px; font-weight: 700;
+      color: var(--lk-gold);
+      background: rgba(240,192,120,0.15);
+      padding: 2px 9px; border-radius: 8px;
+    }
+    #q-text {
+      font-size: 14px; font-weight: 600;
+      color: var(--lk-parchment); line-height: 1.4;
+    }
+
+    /* ── Answer grid (bottom overlay) ── */
+    #quiz-opts-wrap {
+      position: fixed;
+      bottom: 16px; left: 12px; right: 12px;
+      z-index: 30;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .3s, transform .3s;
+    }
+    #quiz-opts-wrap.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .opts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+    .opt {
+      display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      padding: 10px 11px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer; text-align: left;
+      transition: opacity .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 52px;
+    }
+    .opt.a { background: #6366f1; }
+    .opt.b { background: #d97706; }
+    .opt.c { background: #059669; }
+    .opt.d { background: #dc2626; }
+    .opt.locked { cursor: default; }
+    .opt.correct { border: 2.5px solid #fff; opacity: 1; }
+    .opt.wrong   { border: 2.5px solid #fff; opacity: 0.5; }
+    .opt.dim     { opacity: 0.25; }
+    .opt-ltr {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800;
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* ── Continue button — replaced by popup, always hidden ── */
+    #cont-btn { display: none !important; }
+
+    /* ── Feedback popup (centred, animated) ── */
+    #feedback-popup {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      z-index: 40;
+      padding: 22px 24px;
+      border-radius: 16px;
+      max-width: 310px; width: 88%;
+      text-align: center;
+      color: #fff;
+      font-size: 15px; line-height: 1.5;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s, transform .3s;
+    }
+    #feedback-popup.show {
+      opacity: 1; pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #feedback-popup.fp-correct { background: #059669; }
+    #feedback-popup.fp-wrong   { background: var(--lk-wrong); }
+    #fp-text { font-size: 15px; line-height: 1.5; }
+    #fp-btn {
+      display: inline-block;
+      margin-top: 12px;
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 26px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Score overlay (centred floating card) ── */
+    #score-overlay {
+      position: fixed; inset: 0;
+      z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      background: rgba(0,0,0,.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .35s;
+    }
+    #score-overlay.show { opacity: 1; pointer-events: auto; }
+
+    #score-card {
+      background: rgba(26,16,8,0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(240,192,120,0.2);
+      border-radius: 22px;
+      padding: 28px 26px 26px;
+      width: 100%; max-width: 320px;
+      text-align: center;
+    }
+    .score-ring-wrap {
+      position: relative; width: 96px; height: 96px;
+      margin: 0 auto 4px;
+    }
+    .score-ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+    .ring-bg   { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 8; }
+    .ring-fill {
+      fill: none; stroke: var(--lk-gold); stroke-width: 8; stroke-linecap: round;
+      stroke-dasharray: 251; stroke-dashoffset: 251;
+      transition: stroke-dashoffset .7s ease;
+    }
+    .score-inner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .score-big  { font-size: 34px; font-weight: 900; color: var(--lk-gold); line-height: 1; }
+    .score-of   { font-size: 11px; color: rgba(255,255,255,.32); }
+    .score-title { font-size: 18px; font-weight: 800; color: var(--lk-parchment); margin: 14px 0 5px; }
+    .score-sub   { font-size: 13px; color: var(--lk-stone); margin-bottom: 20px; line-height: 1.4; }
+
+    #retry-btn {
+      width: 100%; padding: 13px;
+      background: var(--lk-primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #retry-btn:hover { background: #8B2E10; }
+
+    /* ════════════════════════════════════════════════
+       SCREEN 1 — Landing page
+    ════════════════════════════════════════════════ */
+    #landing {
+      position: fixed; inset: 0;
+      z-index: 1000;
+      background: radial-gradient(ellipse at 50% 30%, #2A1A0E 0%, #1A1008 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 28px 24px;
+      overflow-y: auto;
+      transition: opacity .4s;
+    }
+    #landing.fade-out { opacity: 0; pointer-events: none; }
+
+    .lk-wordmark {
+      font-size: 22px; font-weight: 800;
+      color: var(--lk-gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .lk-tagline {
+      font-size: 12px;
+      color: var(--lk-stone);
+      letter-spacing: .5px;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* Avatar canvas — separate renderer, landing only */
+    #avatar-canvas {
+      display: block;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+      margin: 20px 0 14px;
+    }
+
+    .lk-welcome {
+      font-size: 16px;
+      color: var(--lk-parchment);
+      line-height: 1.5;
+      text-align: center;
+      margin-bottom: 20px;
+      max-width: 320px;
+    }
+
+    .how-to-heading {
+      font-size: 13px;
+      color: var(--lk-stone);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .how-to-list {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 8px;
+      margin-bottom: 24px;
+      width: 100%; max-width: 300px;
+    }
+    .how-to-list li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px;
+      color: var(--lk-parchment);
+    }
+    .step-badge {
+      flex-shrink: 0;
+      background: var(--lk-primary);
+      color: #fff;
+      font-size: 10px; font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      min-width: 56px;
+      text-align: center;
+    }
+
+    #start-btn {
+      width: 100%; max-width: 300px;
+      height: 52px;
+      background: var(--lk-primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px; font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .5px;
+      transition: background .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #start-btn:hover  { background: #8B2E10; }
+    #start-btn:active { transform: scale(.98); }
+
+    /* ── Prefers-reduced-motion: disable all CSS animations ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Camera background -->
+<video id="video" autoplay muted playsinline></video>
+
+<!-- Three.js AR canvas (transparent) -->
+<canvas id="ar-canvas"></canvas>
+
+<!-- Invisible tap/move target -->
+<div id="ar-stage"></div>
+
+<!-- AR Loader — decorative while scanning for surface -->
+<div id="ar-loader" aria-hidden="true">
+  <div class="loader-pillar"></div>
+  <p class="loader-label">Looking for a flat surface…</p>
+  <div class="loader-bar-track"><div class="loader-bar-fill"></div></div>
+</div>
+
+<!-- Exit button — shown after landing dismisses -->
+<button id="exit-btn" aria-label="Exit experience" onclick="window.location.reload()">&#x2715; Exit</button>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="scan-ring"></div>
+  <div id="status-pill" role="status" aria-live="polite">Scanning for a flat surface…</div>
+</div>
+
+<!-- Question card — floats at top -->
+<div id="quiz-q" role="region" aria-label="Quiz question">
+  <div class="q-meta">
+    <span class="q-num"         id="q-num"></span>
+    <span class="q-score-badge" id="q-score"></span>
+  </div>
+  <div id="q-text"></div>
+</div>
+
+<!-- Answer grid — floats at bottom -->
+<div id="quiz-opts-wrap">
+  <div class="opts" id="opts"></div>
+  <button id="cont-btn" aria-hidden="true">Continue</button>
+</div>
+
+<!-- Feedback popup — centred, replaces inline feedback -->
+<div id="feedback-popup" role="dialog" aria-modal="true" aria-labelledby="fp-text">
+  <p id="fp-text"></p>
+  <button id="fp-btn"></button>
+</div>
+
+<!-- Score overlay — centred card over blurred AR view -->
+<div id="score-overlay" role="dialog" aria-modal="true" aria-label="Quiz results">
+  <div id="score-card">
+    <div class="score-ring-wrap">
+      <svg class="score-ring-svg" viewBox="0 0 96 96" aria-hidden="true">
+        <circle class="ring-bg"   cx="48" cy="48" r="40"/>
+        <circle class="ring-fill" id="score-arc" cx="48" cy="48" r="40"/>
+      </svg>
+      <div class="score-inner">
+        <div class="score-big" id="score-big">0</div>
+        <div class="score-of">out of 5</div>
+      </div>
+    </div>
+    <div class="score-title" id="score-title"></div>
+    <div class="score-sub"   id="score-sub"></div>
+    <button id="retry-btn">&#x21BA; &nbsp;Try Again</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 1 — Landing page (shown on load, hides AR below)
+     Dismissed only by clicking Start Experience.
+     Camera and initThree() are NOT called until Start.
+════════════════════════════════════════════════════════ -->
+<div id="landing">
+  <div class="lk-wordmark">Lokakavya</div>
+  <div class="lk-tagline">Digital Heritage, Oral Histories, and Community Storytelling</div>
+
+  <!-- cesiumman.glb rendered in its own small canvas — does NOT use main AR canvas -->
+  <canvas id="avatar-canvas" width="200" height="200"
+          aria-label="Rotating heritage figure"></canvas>
+
+  <p class="lk-welcome">Lokakavya welcomes you to this heritage AR experience</p>
+
+  <p class="how-to-heading">&#8212; How to use &#8212;</p>
+  <ul class="how-to-list">
+    <li><span class="step-badge">[Camera]</span> Allow camera when asked</li>
+    <li><span class="step-badge">[Phone]</span> Move phone slowly</li>
+    <li><span class="step-badge">[Tap]</span> Tap the glowing ring</li>
+    <li><span class="step-badge">[Quiz]</span> Answer the quiz questions</li>
+  </ul>
+
+  <button id="start-btn" aria-label="Start the heritage AR experience">
+    &#9654; &nbsp;Start Experience
+  </button>
+</div>
+
+<!-- importmap: allows bare 'three' and 'three/addons/' specifiers in module script -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+/* ═══════════════════════════════════════════════════════════════
+   REDUCED MOTION — disables Three.js float/spin and avatar rotation
+═══════════════════════════════════════════════════════════════ */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ═══════════════════════════════════════════════════════════════
+   QUIZ DATA — Hero Stone (Veeragallu), Karnataka
+═══════════════════════════════════════════════════════════════ */
+const QUIZ = [
+  {
+    q:    'What is a Veeragallu?',
+    opts: ['A type of temple', 'A memorial stone for a hero', 'An ancient weapon', 'A royal crown'],
+    ans:  1,
+    ok:   'Correct! Veeragallu means "hero stone" in Kannada. It honours someone who died bravely.',
+    bad:  'A Veeragallu is a memorial stone. In Kannada, "veera" means hero and "gallu" means stone.'
+  },
+  {
+    q:    'How many panels does a typical hero stone have?',
+    opts: ['One', 'Two', 'Three', 'Five'],
+    ans:  2,
+    ok:   'Right! Three panels — the bottom shows the battle, the middle shows heaven, the top shows a god.',
+    bad:  'Most hero stones have three panels. Bottom = battle scene. Middle = journey to heaven. Top = deity.'
+  },
+  {
+    q:    'Which Indian state has the most hero stones?',
+    opts: ['Tamil Nadu', 'Maharashtra', 'Karnataka', 'Andhra Pradesh'],
+    ans:  2,
+    ok:   'Yes! Karnataka has over 2,600 known hero stones — the most in India.',
+    bad:  'Karnataka has the largest number — more than 2,600 hero stones have been found there.'
+  },
+  {
+    q:    'What does the bottom panel of a hero stone usually show?',
+    opts: ['The hero in heaven', 'A battle or act of bravery', 'A river scene', 'The king\'s palace'],
+    ans:  1,
+    ok:   'Correct! The bottom panel tells the story of how the hero died bravely.',
+    bad:  'The bottom panel shows the battle or brave act. The middle shows heaven, the top shows a deity.'
+  },
+  {
+    q:    'What material are most hero stones made from?',
+    opts: ['Brick', 'Wood', 'Stone', 'Metal'],
+    ans:  2,
+    ok:   'Right! Hero stones are carved from stone — that is why they have survived for hundreds of years.',
+    bad:  'They are made from stone. Stone lasts for centuries, which is why we can still see them today.'
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   AVATAR CANVAS — cesiumman.glb in a separate renderer, landing only
+   Uses a second THREE.WebGLRenderer; disposed when landing dismisses.
+═══════════════════════════════════════════════════════════════ */
+let renderer2  = null;
+let avatarRafId = null;
+
+function initAvatarCanvas() {
+  const avatarCanvas = document.getElementById('avatar-canvas');
+  renderer2 = new THREE.WebGLRenderer({ canvas: avatarCanvas, alpha: true, antialias: true });
+  renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer2.setSize(200, 200);
+  renderer2.setClearColor(0x000000, 0);
+
+  const sc = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
+  cam.position.set(0, 1, 3.5);
+  cam.lookAt(0, 0.8, 0);
+
+  sc.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const sun2 = new THREE.DirectionalLight(0xfff6e0, 1.2);
+  sun2.position.set(2, 4, 3);
+  sc.add(sun2);
+
+  const loader2 = new GLTFLoader();
+  loader2.load(
+    'cesiumman.glb',
+    gltf => {
+      const m = gltf.scene;
+      const box = new THREE.Box3().setFromObject(m);
+      const sz  = box.getSize(new THREE.Vector3());
+      const s   = 1.6 / Math.max(sz.x, sz.y, sz.z);
+      m.scale.setScalar(s);
+      const b2 = new THREE.Box3().setFromObject(m);
+      m.position.y = -b2.min.y;
+      sc.add(m);
+
+      function avatarLoop() {
+        avatarRafId = requestAnimationFrame(avatarLoop);
+        if (!reducedMotion) m.rotation.y += 0.008;
+        renderer2.render(sc, cam);
+      }
+      avatarLoop();
+    },
+    undefined,
+    () => {
+      // cesiumman.glb not available — render empty canvas silently
+      function avatarLoop() {
+        avatarRafId = requestAnimationFrame(avatarLoop);
+        renderer2.render(sc, cam);
+      }
+      avatarLoop();
+    }
+  );
+}
+
+function disposeAvatarCanvas() {
+  if (avatarRafId !== null) { cancelAnimationFrame(avatarRafId); avatarRafId = null; }
+  if (renderer2)            { renderer2.dispose(); renderer2 = null; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THREE.JS — main renderer, scene, camera, reticle, model
+═══════════════════════════════════════════════════════════════ */
+let renderer, scene, camera;
+let ground, reticleGroup, heroModel;
+const raycaster = new THREE.Raycaster();
+const pointer   = new THREE.Vector2();
+
+function initThree() {
+  const canvas = document.getElementById('ar-canvas');
+
+  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);               // fully transparent clear
+  renderer.outputEncoding  = THREE.sRGBEncoding;      // correct colour for GLBs
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type  = THREE.PCFSoftShadowMap;
+
+  scene  = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 80);
+  camera.position.set(0, 1.1, 2.2);
+  camera.lookAt(0, 0, 0);
+
+  /* ─ invisible ground plane for hit-testing ─ */
+  ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 60),
+    new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+
+  /* ─ reticle: ring + fill + crosshair ─ */
+  reticleGroup = new THREE.Group();
+  reticleGroup.rotation.x = -Math.PI / 2;
+  reticleGroup.position.y = 0.002;
+  reticleGroup.visible    = false;
+  scene.add(reticleGroup);
+
+  const accent  = 0xB5451B;   // --lk-primary
+  const accentG = 0xF0C078;   // --lk-gold
+  const ringMat = new THREE.MeshBasicMaterial({ color: accent,  transparent: true, opacity: .9,  side: THREE.DoubleSide });
+  const fillMat = new THREE.MeshBasicMaterial({ color: accentG, transparent: true, opacity: .12, side: THREE.DoubleSide });
+  const lineMat = new THREE.LineBasicMaterial({ color: accentG, transparent: true, opacity: .55 });
+
+  reticleGroup.add(new THREE.Mesh(new THREE.RingGeometry(0.13, 0.19, 48), ringMat));
+  reticleGroup.add(new THREE.Mesh(new THREE.CircleGeometry(0.13, 48),     fillMat));
+
+  const mkLine = (x1, z1, x2, z2) => {
+    const g = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(x1, 0, z1), new THREE.Vector3(x2, 0, z2)
+    ]);
+    return new THREE.Line(g, lineMat);
+  };
+  reticleGroup.add(mkLine(-0.3, 0,  0.3, 0));
+  reticleGroup.add(mkLine(0, -0.3,  0,  0.3));
+
+  /* ─ lights ─ */
+  scene.add(new THREE.AmbientLight(0xffffff, 0.82));
+
+  const sun = new THREE.DirectionalLight(0xfff6e0, 1.4);
+  sun.position.set(3, 5, 3);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  scene.add(sun);
+
+  const fill = new THREE.DirectionalLight(0xaaccff, 0.45);
+  fill.position.set(-2, 2, -3);
+  scene.add(fill);
+
+  /* ─ shadow receiver (invisible plane at y=0) ─ */
+  const shadowReceiver = new THREE.Mesh(
+    new THREE.PlaneGeometry(4, 4),
+    new THREE.ShadowMaterial({ opacity: 0.28 })
+  );
+  shadowReceiver.rotation.x = -Math.PI / 2;
+  shadowReceiver.position.y = 0.001;
+  shadowReceiver.receiveShadow = true;
+  scene.add(shadowReceiver);
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  /* ─ render loop ─ */
+  (function loop() {
+    requestAnimationFrame(loop);
+    const t = reducedMotion ? 0 : performance.now() * 0.001;
+
+    // pulse reticle ring opacity
+    if (reticleGroup.visible) {
+      reticleGroup.children[0].material.opacity = reducedMotion ? 0.9  : 0.52 + Math.sin(t * 2.8) * 0.38;
+      reticleGroup.children[1].material.opacity = reducedMotion ? 0.12 : 0.07 + Math.sin(t * 2.8) * 0.05;
+    }
+
+    // gentle float + slow spin on placed model
+    if (heroModel && !reducedMotion) {
+      heroModel.rotation.y = t * 0.4;
+      heroModel.position.y = heroModel.userData.baseY + Math.sin(t * 1.1) * 0.018;
+    }
+
+    renderer.render(scene, camera);
+  })();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RAYCAST — pointer coords → world point on ground plane
+   (unchanged from original)
+═══════════════════════════════════════════════════════════════ */
+function groundHit(clientX, clientY) {
+  pointer.x =  (clientX / window.innerWidth)  * 2 - 1;
+  pointer.y = -(clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObject(ground);
+  return hits.length ? hits[0].point : null;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AR STATE
+═══════════════════════════════════════════════════════════════ */
+let surfaceReady = false;
+let modelPlaced  = false;
+
+/* ─ pointer events on the transparent hit stage ─ */
+const stage = document.getElementById('ar-stage');
+
+stage.addEventListener('mousemove', e => {
+  if (!surfaceReady || modelPlaced) return;
+  const p = groundHit(e.clientX, e.clientY);
+  if (p) reticleGroup.position.set(p.x, 0.002, p.z);
+});
+
+stage.addEventListener('touchmove', e => {
+  if (!surfaceReady || modelPlaced) return;
+  const t = e.touches[0];
+  const p = groundHit(t.clientX, t.clientY);
+  if (p) reticleGroup.position.set(p.x, 0.002, p.z);
+}, { passive: true });
+
+stage.addEventListener('click', e => {
+  if (!surfaceReady || modelPlaced) return;
+  const p = groundHit(e.clientX, e.clientY);
+  if (p) placeModel(p);
+});
+
+stage.addEventListener('touchend', e => {
+  if (!surfaceReady || modelPlaced) return;
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  const p = groundHit(t.clientX, t.clientY);
+  if (p) placeModel(p);
+}, { passive: false });
+
+/* ═══════════════════════════════════════════════════════════════
+   PLACE MODEL
+═══════════════════════════════════════════════════════════════ */
+function placeModel(point) {
+  const loader = new GLTFLoader();
+  // TODO: replace 'Avocado.glb' with 'herostone.glb' when asset is ready
+  loader.load(
+    'Avocado.glb',
+    gltf => {
+      heroModel = gltf.scene;
+      heroModel.traverse(n => {
+        if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; }
+      });
+
+      // normalise: fit tallest axis to ~0.48 world units
+      const box  = new THREE.Box3().setFromObject(heroModel);
+      const size = box.getSize(new THREE.Vector3());
+      const s    = 0.48 / Math.max(size.x, size.y, size.z);
+      heroModel.scale.setScalar(s);
+
+      // sit flush on ground
+      const b2    = new THREE.Box3().setFromObject(heroModel);
+      const baseY = -b2.min.y;
+      heroModel.position.set(point.x, baseY, point.z);
+      heroModel.userData.baseY = baseY;
+      scene.add(heroModel);
+
+      // pop-in ease-out cubic
+      heroModel.scale.setScalar(0);
+      let frame = 0;
+      (function grow() {
+        frame++;
+        const prog  = Math.min(frame / 24, 1);
+        const eased = 1 - Math.pow(1 - prog, 3);
+        heroModel.scale.setScalar(s * eased);
+        if (prog < 1) requestAnimationFrame(grow);
+      })();
+
+      modelPlaced = true;
+      reticleGroup.visible = false;
+      stage.style.pointerEvents = 'none';
+      document.getElementById('hud').style.opacity = '0';
+      document.getElementById('ar-loader').style.display = 'none';
+
+      setTimeout(openQuiz, 950);   // let pop-in finish before quiz slides up
+    },
+    undefined,
+    err => {
+      console.error('GLB load error:', err);
+      document.getElementById('status-pill').textContent = 'Failed to load model — check console';
+    }
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIMULATE SURFACE DETECTION (2.3 s scan → ready)
+═══════════════════════════════════════════════════════════════ */
+function startScan() {
+  setTimeout(() => {
+    surfaceReady = true;
+    document.getElementById('scan-ring').style.display  = 'none';
+    document.getElementById('status-pill').textContent  = 'Surface found — tap to place';
+    document.getElementById('ar-loader').style.display  = 'none';
+    reticleGroup.visible = true;
+    stage.style.pointerEvents = 'auto';
+  }, 2300);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAMERA
+═══════════════════════════════════════════════════════════════ */
+async function startCamera() {
+  const video = document.getElementById('video');
+  try {
+    video.srcObject = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: 1280, height: 720 },
+      audio: false
+    });
+  } catch {
+    // fall back to any available camera (e.g. laptop webcam)
+    video.srcObject = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUIZ LOGIC
+═══════════════════════════════════════════════════════════════ */
+let qIdx = 0, score = 0, answered = false;
+
+function openQuiz() {
+  qIdx = 0; score = 0; answered = false;
+  document.getElementById('score-overlay').className = '';
+  renderQuestion();
+  document.getElementById('quiz-q').classList.add('show');
+  document.getElementById('quiz-opts-wrap').classList.add('show');
+}
+
+function renderQuestion() {
+  answered = false;
+  const d    = QUIZ[qIdx];
+  const ltrs = ['A', 'B', 'C', 'D'];
+  const cls  = ['a', 'b', 'c', 'd'];
+
+  document.getElementById('q-num').textContent   = `Q ${qIdx + 1} / ${QUIZ.length}`;
+  document.getElementById('q-score').textContent = `${score} / ${QUIZ.length}`;
+  document.getElementById('q-text').textContent  = d.q;
+
+  const el = document.getElementById('opts');
+  el.innerHTML = '';
+  d.opts.forEach((text, i) => {
+    const btn = document.createElement('button');
+    btn.className = `opt ${cls[i]}`;
+    btn.innerHTML = `<span class="opt-ltr">${ltrs[i]}</span>${text}`;
+    btn.addEventListener('click', () => pickAnswer(i));
+    el.appendChild(btn);
+  });
+}
+
+function pickAnswer(i) {
+  if (answered) return;
+  answered = true;
+
+  const d    = QUIZ[qIdx];
+  const btns = document.querySelectorAll('.opt');
+
+  btns.forEach(b => b.classList.add('locked'));
+
+  if (i === d.ans) {
+    btns[i].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== i) b.classList.add('dim'); });
+    score++;
+    document.getElementById('q-score').textContent = `${score} / ${QUIZ.length}`;
+    showFeedbackPopup(true, d.ok);
+  } else {
+    btns[i].classList.add('wrong');
+    btns[d.ans].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== i && j !== d.ans) b.classList.add('dim'); });
+    document.getElementById('q-score').textContent = `${score} / ${QUIZ.length}`;
+    showFeedbackPopup(false, d.bad);
+  }
+}
+
+/* ─ Centred animated feedback popup ─ */
+function showFeedbackPopup(isCorrect, msg) {
+  const popup  = document.getElementById('feedback-popup');
+  const fpText = document.getElementById('fp-text');
+  const fpBtn  = document.getElementById('fp-btn');
+
+  fpText.textContent = msg;
+  fpBtn.textContent  = isCorrect ? 'Next \u2192' : 'Try Again';
+  popup.className    = isCorrect ? 'fp-correct show' : 'fp-wrong show';
+
+  fpBtn.onclick = () => {
+    popup.classList.remove('show');
+    if (isCorrect) {
+      advance();
+    } else {
+      // Re-enable buttons on same question for retry
+      answered = false;
+      document.querySelectorAll('.opt').forEach(b => {
+        b.classList.remove('locked', 'correct', 'wrong', 'dim');
+      });
+    }
+  };
+}
+
+function advance() {
+  qIdx++;
+  if (qIdx >= QUIZ.length) {
+    showScore();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showScore() {
+  document.getElementById('quiz-q').classList.remove('show');
+  document.getElementById('quiz-opts-wrap').classList.remove('show');
+
+  const titles = [
+    'Keep trying!',
+    'Good start!',
+    'Well done!',
+    'Great effort!',
+    'Almost perfect!',
+    'Heritage Champion!'
+  ];
+  const subs = [
+    'Every question you get wrong is something new you learned!',
+    'You got 1 right. Try again to learn all about Veeragallus!',
+    'You got 2 right. One more try to ace it!',
+    '3 out of 5 — you are getting there!',
+    '4 out of 5 — brilliant! Try once more.',
+    'You answered all 5 questions correctly. Amazing work!'
+  ];
+
+  document.getElementById('score-big').textContent   = score;
+  document.getElementById('score-title').textContent = titles[score];
+  document.getElementById('score-sub').textContent   = subs[score];
+
+  // SVG ring: r=40, circumference = 2π×40 ≈ 251.3
+  const circ = 2 * Math.PI * 40;
+  const arc  = document.getElementById('score-arc');
+  arc.style.strokeDasharray  = `${circ}`;
+  arc.style.strokeDashoffset = `${circ}`;
+
+  document.getElementById('score-overlay').classList.add('show');
+
+  // double-RAF so the CSS transition fires after the element becomes visible
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    arc.style.strokeDashoffset = `${circ * (1 - score / QUIZ.length)}`;
+  }));
+}
+
+function retryQuiz() {
+  qIdx = 0; score = 0; answered = false;
+  document.getElementById('score-overlay').className = '';
+  document.getElementById('feedback-popup').classList.remove('show');
+  renderQuestion();
+  document.getElementById('quiz-q').classList.add('show');
+  document.getElementById('quiz-opts-wrap').classList.add('show');
+}
+
+/* ─ button wires ─ */
+document.getElementById('retry-btn').addEventListener('click', retryQuiz);
+
+/* ═══════════════════════════════════════════════════════════════
+   LANDING → START BUTTON
+   Camera permission is requested only here, not on page load.
+═══════════════════════════════════════════════════════════════ */
+document.getElementById('start-btn').addEventListener('click', async () => {
+  const landing = document.getElementById('landing');
+
+  // Fade out landing overlay
+  landing.classList.add('fade-out');
+  setTimeout(() => {
+    landing.style.display = 'none';
+    disposeAvatarCanvas();   // release second WebGLRenderer
+  }, 400);
+
+  // Show exit button
+  document.getElementById('exit-btn').style.display = 'block';
+
+  // Show AR loader while camera starts and surface scans
+  document.getElementById('ar-loader').style.display = 'flex';
+
+  // Request camera — only called here
+  try {
+    await startCamera();
+  } catch (err) {
+    document.getElementById('scan-ring').style.display = 'none';
+    document.getElementById('ar-loader').style.display = 'none';
+    document.getElementById('status-pill').textContent =
+      'Camera not allowed — please refresh and tap Allow';
+    console.error('Camera error:', err);
+    return;
+  }
+
+  initThree();
+  startScan();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT — initialise avatar canvas on page load only
+   (AR scene boots on Start click, not here)
+═══════════════════════════════════════════════════════════════ */
+initAvatarCanvas();
+</script>
+</body>
+</html>
