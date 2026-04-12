@@ -312,7 +312,6 @@ function placeModel(point) {
       reticleGroup.visible = false;
       stage.style.pointerEvents = 'none';
       document.getElementById('hud').style.opacity = '0';
-      document.getElementById('ar-loader').style.display = 'none';
 
       setTimeout(openQuiz, 950);   // let pop-in finish before quiz slides up
     },
@@ -332,7 +331,6 @@ function startScan() {
     surfaceReady = true;
     document.getElementById('scan-ring').style.display  = 'none';
     document.getElementById('status-pill').textContent  = 'Surface found — tap to place';
-    document.getElementById('ar-loader').style.display  = 'none';
     reticleGroup.visible = true;
     stage.style.pointerEvents = 'auto';
   }, 2300);
@@ -501,14 +499,12 @@ document.getElementById('start-btn').addEventListener('click', async () => {
   landing.classList.add('fade-out');
   setTimeout(() => { landing.style.display = 'none'; disposeAvatarCanvas(); }, 400);
 
-  document.getElementById('exit-btn').style.display  = 'block';
-  document.getElementById('ar-loader').style.display = 'flex';
+  document.getElementById('exit-btn').style.display = 'block';
 
   try {
     await startCamera();
   } catch (err) {
     document.getElementById('scan-ring').style.display = 'none';
-    document.getElementById('ar-loader').style.display = 'none';
     document.getElementById('status-pill').textContent =
       'Camera not allowed — please refresh and tap Allow';
     console.error('Camera error:', err);

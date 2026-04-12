@@ -61,65 +61,6 @@
       cursor: crosshair;
     }
 
-    /* ── AR Loader overlay — shown while scanning for surface ── */
-    #ar-loader {
-      position: fixed; inset: 0;
-      z-index: 5;
-      display: none;
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 18px;
-      pointer-events: none;
-    }
-
-    .loader-pillar {
-      width: 36px; height: 110px;
-      background: var(--lk-primary);
-      border-radius: 6px 6px 2px 2px;
-      position: relative;
-      animation: pillar-pulse 1.5s ease-in-out infinite;
-    }
-    .loader-pillar::before {
-      content: ''; position: absolute; top: -26px; left: 50%;
-      transform: translateX(-50%);
-      width: 46px; height: 26px;
-      background: var(--lk-gold);
-      border-radius: 50% 50% 4px 4px;
-    }
-    .loader-pillar::after {
-      content: ''; position: absolute; bottom: -8px; left: 50%;
-      transform: translateX(-50%);
-      width: 54px; height: 10px;
-      background: var(--lk-stone);
-      border-radius: 2px;
-    }
-    @keyframes pillar-pulse {
-      0%, 100% { transform: scaleY(1); opacity: 0.8; }
-      50%       { transform: scaleY(1.05); opacity: 1; }
-    }
-
-    .loader-label {
-      color: var(--lk-parchment);
-      font-size: 14px;
-      letter-spacing: .4px;
-      text-align: center;
-    }
-    .loader-bar-track {
-      width: 180px; height: 3px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 2px; overflow: hidden;
-    }
-    .loader-bar-fill {
-      width: 40%; height: 100%;
-      background: var(--lk-gold);
-      border-radius: 2px;
-      animation: bar-slide 1.2s ease-in-out infinite;
-    }
-    @keyframes bar-slide {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(350%); }
-    }
-
     /* ── Exit button — top-right, always visible after landing dismisses ── */
     #exit-btn {
       position: fixed; top: 14px; right: 14px;
@@ -488,13 +429,6 @@
 
 <!-- Invisible tap/move target -->
 <div id="ar-stage"></div>
-
-<!-- AR Loader — decorative while scanning for surface -->
-<div id="ar-loader" aria-hidden="true">
-  <div class="loader-pillar"></div>
-  <p class="loader-label">Looking for a flat surface…</p>
-  <div class="loader-bar-track"><div class="loader-bar-fill"></div></div>
-</div>
 
 <!-- Exit button — shown after landing dismisses -->
 <button id="exit-btn" aria-label="Exit experience" onclick="window.location.reload()">&#x2715; Exit</button>
