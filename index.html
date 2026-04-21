@@ -13,13 +13,13 @@
   <style>
     /* ── Design tokens ── */
     :root {
-      --lk-primary:   #B5451B;
-      --lk-gold:      #F0C078;
-      --lk-ink:       #1A1008;
-      --lk-parchment: #FAF0DC;
-      --lk-stone:     #7A6E60;
-      --lk-correct:   #2A9D5C;
-      --lk-wrong:     #C0392B;
+      --lk-primary:   #4F46E5;
+      --lk-gold:      #22D3EE;
+      --lk-ink:       #0F172A;
+      --lk-parchment: #E2E8F0;
+      --lk-stone:     #64748B;
+      --lk-correct:   #10B981;
+      --lk-wrong:     #EF4444;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -302,6 +302,8 @@
     .score-title { font-size: 18px; font-weight: 800; color: var(--lk-parchment); margin: 14px 0 5px; }
     .score-sub   { font-size: 13px; color: var(--lk-stone); margin-bottom: 20px; line-height: 1.4; }
 
+    .score-actions { display: flex; flex-direction: column; gap: 8px; }
+
     #retry-btn {
       width: 100%; padding: 13px;
       background: var(--lk-primary);
@@ -314,7 +316,21 @@
       transition: background .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    #retry-btn:hover { background: #8B2E10; }
+    #retry-btn:hover { background: #3730a3; }
+
+    #continue-btn {
+      width: 100%; padding: 13px;
+      background: rgba(255,255,255,0.07);
+      color: var(--lk-parchment);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #continue-btn:hover { background: rgba(255,255,255,0.12); }
 
     /* ════════════════════════════════════════════════
        SCREEN 1 — Landing page
@@ -322,28 +338,44 @@
     #landing {
       position: fixed; inset: 0;
       z-index: 1000;
-      background: radial-gradient(ellipse at 50% 30%, #2A1A0E 0%, #1A1008 100%);
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
+        #0F172A;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 28px 24px;
+      padding: 20px 24px;
       overflow-y: auto;
       transition: opacity .4s;
+    }
+    #landing::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
     }
     #landing.fade-out { opacity: 0; pointer-events: none; }
 
     .lk-wordmark {
-      font-size: 22px; font-weight: 800;
+      font-size: 26px; font-weight: 800;
       color: var(--lk-gold);
-      letter-spacing: 2px;
+      letter-spacing: 5px;
       text-transform: uppercase;
       text-align: center;
+      text-shadow: 0 0 28px rgba(34,211,238,0.45);
+      position: relative;
     }
     .lk-tagline {
-      font-size: 12px;
+      font-size: 10px;
       color: var(--lk-stone);
-      letter-spacing: .5px;
+      letter-spacing: 1.2px;
       margin-top: 4px;
       text-align: center;
+      text-transform: uppercase;
+      position: relative;
     }
 
     /* Avatar canvas — separate renderer, landing only */
@@ -351,64 +383,380 @@
       display: block;
       border-radius: 50%;
       background: rgba(255,255,255,0.03);
-      margin: 20px 0 14px;
+      margin: 12px 0 8px;
+      border: 1px solid rgba(34,211,238,0.22);
+      box-shadow: 0 0 32px rgba(79,70,229,0.38), 0 0 64px rgba(34,211,238,0.08);
+      position: relative;
     }
 
     .lk-welcome {
-      font-size: 16px;
-      color: var(--lk-parchment);
-      line-height: 1.5;
+      font-size: 13px;
+      color: var(--lk-stone);
+      line-height: 1.6;
       text-align: center;
-      margin-bottom: 20px;
-      max-width: 320px;
+      margin-bottom: 10px;
+      max-width: 280px;
+      position: relative;
     }
 
     .how-to-heading {
-      font-size: 13px;
+      font-size: 10px;
       color: var(--lk-stone);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
+      letter-spacing: 2.5px;
+      margin-bottom: 8px;
       text-align: center;
+      position: relative;
     }
 
     .how-to-list {
       list-style: none;
-      display: flex; flex-direction: column; gap: 8px;
-      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 14px;
       width: 100%; max-width: 300px;
+      position: relative;
     }
     .how-to-list li {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 13px;
-      color: var(--lk-parchment);
-    }
-    .step-badge {
-      flex-shrink: 0;
-      background: var(--lk-primary);
-      color: #fff;
-      font-size: 10px; font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      min-width: 56px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 10px 8px;
       text-align: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .step-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .step-label {
+      font-size: 10px; font-weight: 700;
+      color: var(--lk-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: var(--lk-stone);
+      line-height: 1.35;
     }
 
     #start-btn {
       width: 100%; max-width: 300px;
-      height: 52px;
-      background: var(--lk-primary);
+      min-height: 52px;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, var(--lk-primary) 0%, #7C3AED 100%);
       color: #fff;
       border: none;
       border-radius: 12px;
-      font-size: 16px; font-weight: 700;
+      font-size: 15px; font-weight: 700;
       cursor: pointer;
-      letter-spacing: .5px;
-      transition: background .15s, transform .1s;
+      letter-spacing: .8px;
+      transition: box-shadow .2s, transform .1s;
+      box-shadow: 0 4px 22px rgba(79,70,229,0.5);
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+      position: relative;
+    }
+    #start-btn:hover  { box-shadow: 0 6px 32px rgba(79,70,229,0.7); transform: translateY(-1px); }
+    #start-btn:active { transform: scale(.98); }
+
+    /* ════════════════════════════════════════════════
+       SCREEN 2 — Track Selection
+    ════════════════════════════════════════════════ */
+    #track-select {
+      position: fixed; inset: 0;
+      z-index: 900;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
+        #0F172A;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 28px 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s;
+    }
+    #track-select::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    #track-select.show { opacity: 1; pointer-events: auto; }
+
+    #ts-home-btn {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      color: var(--lk-stone);
+      line-height: 0;
+      transition: background .15s, color .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    #start-btn:hover  { background: #8B2E10; }
-    #start-btn:active { transform: scale(.98); }
+    #ts-home-btn:hover { background: rgba(255,255,255,0.12); color: var(--lk-parchment); }
+
+    .ts-heading {
+      font-size: 22px; font-weight: 800;
+      color: var(--lk-parchment);
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .ts-sub {
+      font-size: 11px;
+      color: var(--lk-stone);
+      text-align: center;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .track-cards {
+      display: flex; flex-direction: column; gap: 12px;
+      width: 100%; max-width: 320px;
+      position: relative;
+    }
+    .track-card {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      padding: 16px 14px 16px 18px;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: background .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .track-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+    }
+    .track-card.herostone::before { background: #10B981; }
+    .track-card.temple::before    { background: var(--lk-gold); }
+    .track-card:hover { background: rgba(255,255,255,0.09); transform: translateX(3px); }
+    .tc-icon  { font-size: 28px; flex-shrink: 0; }
+    .tc-body  { flex: 1; min-width: 0; }
+    .tc-title {
+      font-size: 15px; font-weight: 700;
+      color: var(--lk-parchment);
+      margin-bottom: 4px;
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tc-tag {
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px;
+      padding: 2px 7px; border-radius: 6px;
+    }
+    .tc-tag.green { background: rgba(16,185,129,0.18); color: #10B981; }
+    .tc-tag.cyan  { background: rgba(34,211,238,0.18); color: var(--lk-gold); }
+    .tc-desc { font-size: 12px; color: var(--lk-stone); line-height: 1.45; }
+    .tc-arrow { font-size: 20px; color: rgba(255,255,255,0.2); flex-shrink: 0; }
+
+    /* ════════════════════════════════════════════════
+       SCREEN 3 — Track Intro
+    ════════════════════════════════════════════════ */
+    #track-intro {
+      position: fixed; inset: 0;
+      z-index: 800;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
+        #0F172A;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s;
+    }
+    #track-intro::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    #track-intro.show { opacity: 1; pointer-events: auto; }
+
+    .intro-badge {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      padding: 4px 14px; border-radius: 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .intro-badge.green { background: rgba(16,185,129,0.15); color: #10B981;        border: 1px solid rgba(16,185,129,0.3); }
+    .intro-badge.cyan  { background: rgba(34,211,238,0.15); color: var(--lk-gold); border: 1px solid rgba(34,211,238,0.3); }
+
+    .intro-icon {
+      font-size: 52px;
+      margin-bottom: 14px;
+      position: relative;
+      filter: drop-shadow(0 0 18px rgba(79,70,229,0.55));
+    }
+    .intro-title {
+      font-size: 22px; font-weight: 800;
+      color: var(--lk-parchment);
+      text-align: center;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .intro-body {
+      font-size: 14px;
+      color: var(--lk-stone);
+      line-height: 1.65;
+      text-align: center;
+      max-width: 300px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    #begin-btn {
+      width: 100%; max-width: 300px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--lk-primary) 0%, #7C3AED 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .8px;
+      box-shadow: 0 4px 22px rgba(79,70,229,0.5);
+      transition: box-shadow .2s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    #begin-btn:hover  { box-shadow: 0 6px 32px rgba(79,70,229,0.7); transform: translateY(-1px); }
+    #begin-btn:active { transform: scale(.98); }
+
+    #intro-back-btn {
+      background: none; border: none;
+      color: var(--lk-stone);
+      font-size: 13px; cursor: pointer;
+      padding: 8px 16px; border-radius: 8px;
+      transition: color .15s;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #intro-back-btn:hover { color: var(--lk-parchment); }
+
+    /* ── Score card — track outro text ── */
+    .track-outro {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+      text-align: center;
+      margin-bottom: 16px;
+      display: none;
+      padding: 10px 4px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ════════════════════════════════════════════════
+       SCREEN — Quiz Outro
+    ════════════════════════════════════════════════ */
+    #outro-screen {
+      position: fixed; inset: 0;
+      z-index: 60;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
+        #0F172A;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .4s;
+    }
+    #outro-screen::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    #outro-screen.show { opacity: 1; pointer-events: auto; }
+
+    .outro-icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+      position: relative;
+      filter: drop-shadow(0 0 20px rgba(34,211,238,0.4));
+    }
+    .outro-title {
+      font-size: 22px; font-weight: 800;
+      color: var(--lk-parchment);
+      text-align: center;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .outro-body {
+      font-size: 15px;
+      color: var(--lk-stone);
+      line-height: 1.7;
+      text-align: center;
+      max-width: 300px;
+      margin-bottom: 36px;
+      position: relative;
+    }
+    .outro-actions {
+      display: flex; flex-direction: column; gap: 10px;
+      width: 100%; max-width: 300px;
+      position: relative;
+    }
+    #outro-track-btn {
+      width: 100%;
+      min-height: 52px; padding: 15px 24px;
+      background: linear-gradient(135deg, var(--lk-primary) 0%, #7C3AED 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .5px;
+      box-shadow: 0 4px 22px rgba(79,70,229,0.45);
+      transition: box-shadow .2s, transform .1s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #outro-track-btn:hover  { box-shadow: 0 6px 32px rgba(79,70,229,0.65); transform: translateY(-1px); }
+    #outro-track-btn:active { transform: scale(.98); }
+
+    #outro-exit-btn {
+      width: 100%;
+      min-height: 48px; padding: 13px 24px;
+      background: rgba(255,255,255,0.06);
+      color: var(--lk-stone);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #outro-exit-btn:hover { background: rgba(255,255,255,0.1); color: var(--lk-parchment); }
 
     /* ── Prefers-reduced-motion: disable all CSS animations ── */
     @media (prefers-reduced-motion: reduce) {
@@ -442,7 +790,7 @@
 <!-- Question card — floats at top -->
 <div id="quiz-q" role="region" aria-label="Quiz question">
   <div class="q-type-badge">
-    <span class="q-type-inner" aria-hidden="true">
+    <span class="q-type-inner" id="q-track-badge" aria-hidden="true">
       <span class="q-type-icon">?</span>Heritage Quiz
     </span>
     <span class="q-score-badge" id="q-score"></span>
@@ -480,7 +828,11 @@
     </div>
     <div class="score-title" id="score-title"></div>
     <div class="score-sub"   id="score-sub"></div>
-    <button id="retry-btn">&#x21BA; &nbsp;Try Again</button>
+    <p id="track-outro" class="track-outro"></p>
+    <div class="score-actions">
+      <button id="retry-btn">&#x21BA;&nbsp; Try Again</button>
+      <button id="continue-btn">Continue &#8594;</button>
+    </div>
   </div>
 </div>
 
@@ -494,22 +846,84 @@
   <div class="lk-tagline">Digital Heritage, Oral Histories, and Community Storytelling</div>
 
   <!-- cesiumman.glb rendered in its own small canvas — does NOT use main AR canvas -->
-  <canvas id="avatar-canvas" width="200" height="200"
+  <canvas id="avatar-canvas" width="140" height="140"
           aria-label="Rotating heritage figure"></canvas>
 
   <p class="lk-welcome">Lokakavya welcomes you to this heritage AR experience</p>
 
   <p class="how-to-heading">&#8212; How to use &#8212;</p>
   <ul class="how-to-list">
-    <li><span class="step-badge">[Camera]</span> Allow camera when asked</li>
-    <li><span class="step-badge">[Phone]</span> Move phone slowly</li>
-    <li><span class="step-badge">[Tap]</span> Tap the glowing ring</li>
-    <li><span class="step-badge">[Quiz]</span> Answer the quiz questions</li>
+    <li><span class="step-icon">📷</span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
+    <li><span class="step-icon">📱</span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
+    <li><span class="step-icon">👆</span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
+    <li><span class="step-icon">🧠</span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
   </ul>
 
   <button id="start-btn" aria-label="Start the heritage AR experience">
     &#9654; &nbsp;Start Experience
   </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN — Quiz Outro
+════════════════════════════════════════════════════════ -->
+<div id="outro-screen" role="dialog" aria-modal="true" aria-label="Quiz complete">
+  <div class="outro-icon">🏛️</div>
+  <h2 class="outro-title">History Unlocked!</h2>
+  <p class="outro-body">Great job! You've just analyzed a real historical document from nearly 500 years ago. Understanding these inscriptions helps us keep history alive.</p>
+  <div class="outro-actions">
+    <button id="outro-track-btn">&#8592;&nbsp; Choose Another Track</button>
+    <button id="outro-exit-btn">Exit Experience</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 2 — Track Selection
+════════════════════════════════════════════════════════ -->
+<div id="track-select">
+  <button id="ts-home-btn" aria-label="Back to home">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  </button>
+  <div class="ts-heading">Choose Your Track</div>
+  <div class="ts-sub">Select an experience to begin</div>
+  <div class="track-cards">
+
+    <div class="track-card herostone" id="track-herostone"
+         role="button" tabindex="0" aria-label="Hero Stones track">
+      <div class="tc-icon">🗿</div>
+      <div class="tc-body">
+        <div class="tc-title">Hero Stones <span class="tc-tag green">Conservation</span></div>
+        <div class="tc-desc">Explore Veeragallu monuments and discover how 3D scanning preserves Karnataka's heritage.</div>
+      </div>
+      <div class="tc-arrow">›</div>
+    </div>
+
+    <div class="track-card temple" id="track-temple"
+         role="button" tabindex="0" aria-label="Temple Inscription track">
+      <div class="tc-icon">🏛️</div>
+      <div class="tc-body">
+        <div class="tc-title">Temple Inscription <span class="tc-tag cyan">1534 CE</span></div>
+        <div class="tc-desc">Uncover the secrets of the Chakkere Tirumala Temple and the Vijayanagar Empire.</div>
+      </div>
+      <div class="tc-arrow">›</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 3 — Track Intro
+════════════════════════════════════════════════════════ -->
+<div id="track-intro">
+  <div  class="intro-badge" id="intro-badge"></div>
+  <div  class="intro-icon"  id="intro-icon"></div>
+  <h2   class="intro-title" id="intro-title"></h2>
+  <p    class="intro-body"  id="intro-body"></p>
+  <button id="begin-btn" aria-label="Begin the AR experience">&#9654;&nbsp; Begin Experience</button>
+  <button id="intro-back-btn">&#8592; Back</button>
 </div>
 
 <!-- importmap: resolves bare 'three' and 'three/addons/' specifiers used in app.js -->

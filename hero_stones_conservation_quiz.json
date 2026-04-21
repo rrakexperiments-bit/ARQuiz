@@ -1,0 +1,167 @@
+{
+    "quiz_title": "Hero Stones: Guardians of History & Digital Conservation",
+    "target_audience": "Learners aged 12",
+    "topic": "Generic Hero Stones, Carvings, and 3D Conservation",
+    "questions": [
+        {
+            "question_number": 1,
+            "question": "What is the primary purpose of a 'Hero Stone' found in many parts of India?",
+            "options": [
+                "To serve as a boundary marker for a farm",
+                "To commemorate the brave death of an individual in battle or protection",
+                "To act as a signpost for travelers",
+                "To record the birth of a new prince"
+            ],
+            "correct_answer": "To commemorate the brave death of an individual in battle or protection",
+            "feedback_script": {
+                "correct": "Correct! These stones, called Veeragallu, were erected to honor those who made the ultimate sacrifice for their community.",
+                "incorrect": "Not quite. While stones were used for many things, 'Hero' stones specifically honor acts of bravery and sacrifice."
+            },
+            "hint": "Focus on the word 'Hero' in the name."
+        },
+        {
+            "question_number": 2,
+            "question": "Hero stones are often divided into horizontal 'panels'. What does the bottom panel usually depict?",
+            "options": [
+                "The hero entering heaven",
+                "The hero worshiping a deity",
+                "The specific event or battle where the hero died",
+                "A list of the hero's family members"
+            ],
+            "correct_answer": "The specific event or battle where the hero died",
+            "feedback_script": {
+                "correct": "Exactly! The story on the stone usually starts from the bottom, showing the hero's final brave act on Earth.",
+                "incorrect": "Try again. Think of the stone like a storybook where the Earthly events happen at the base."
+            },
+            "hint": "Think of it like a comic strip that starts at the ground level."
+        },
+        {
+            "question_number": 3,
+            "question": "Which celestial symbols represent 'eternity' at the top of a hero stone?",
+            "options": [
+                "Clouds and Rain",
+                "The Sun and the Moon",
+                "Stars and Comets",
+                "The Earth and the Sea"
+            ],
+            "correct_answer": "The Sun and the Moon",
+            "feedback_script": {
+                "correct": "Right! Carvers included the Sun and Moon to show that the hero's fame should last as long as they remain in the sky.",
+                "incorrect": "Not quite. Look for symbols that represent something that never disappears from our sky."
+            },
+            "hint": "Look for the two brightest objects in the sky."
+        },
+        {
+            "question_number": 4,
+            "question": "What is the biggest natural threat to hero stones located outdoors?",
+            "options": [
+                "Earthquakes",
+                "Weathering from rain, wind, and sun",
+                "Wild animal attacks",
+                "Lightning strikes"
+            ],
+            "correct_answer": "Weathering from rain, wind, and sun",
+            "feedback_script": {
+                "correct": "Correct. Over hundreds of years, water and wind slowly wear away the stone and make carvings disappear.",
+                "incorrect": "Actually, it's the slow, constant effect of nature (like rain) that does the most damage over time."
+            },
+            "hint": "Think about what happens to a rock if it sits in the rain for 500 years."
+        },
+        {
+            "question_number": 5,
+            "question": "Why is 'Digital Conservation' using 3D scanning helpful for broken stones?",
+            "options": [
+                "It can physically glue the pieces back together",
+                "It allows experts to virtually reassemble the pieces",
+                "It changes the color of the stone to look new",
+                "It turns the stone into a 3D movie"
+            ],
+            "correct_answer": "It allows experts to virtually reassemble the pieces",
+            "feedback_script": {
+                "correct": "Yes! Scientists can use 3D models to fit broken fragments together like a digital puzzle.",
+                "incorrect": "Scanning doesn't fix the physical stone, but it helps us see what it used to look like in a virtual space."
+            },
+            "hint": "Think about how a puzzle works on a computer screen."
+        },
+        {
+            "question_number": 6,
+            "question": "A 'Turugol' is a hero stone for someone who protected what?",
+            "options": [
+                "Forest trees",
+                "Village cattle",
+                "Secret treasure",
+                "The village well"
+            ],
+            "correct_answer": "Village cattle",
+            "feedback_script": {
+                "correct": "Correct! 'Turu' means cattle. Protecting cows was a very important duty in ancient villages.",
+                "incorrect": "Not quite. In ancient times, cows were considered the most important wealth of a village."
+            },
+            "hint": "In ancient times, cows were a sign of a village's wealth."
+        },
+        {
+            "question_number": 7,
+            "question": "What is a '3D Digital Twin' of a hero stone?",
+            "options": [
+                "A second stone carved to look like the first one",
+                "A precise digital 3D model that captures every detail",
+                "A photo taken from two different cameras",
+                "A robot that guards the stone"
+            ],
+            "correct_answer": "A precise digital 3D model that captures every detail",
+            "feedback_script": {
+                "correct": "Exactly. A digital twin is a perfect virtual backup that can never be eroded or destroyed.",
+                "incorrect": "A digital twin isn't a physical object; it's a high-tech computer model."
+            },
+            "hint": "It's like having a virtual 'clone' of the stone."
+        },
+        {
+            "question_number": 8,
+            "question": "How does 'Photogrammetry' help in conservation?",
+            "options": [
+                "It uses light to clean the moss off the stone",
+                "It uses many photos from different angles to build a 3D model",
+                "It measures how much the stone weighs",
+                "It tells us the exact age of the stone's mineral"
+            ],
+            "correct_answer": "It uses many photos from different angles to build a 3D model",
+            "feedback_script": {
+                "correct": "Correct! By combining many 2D photos, software creates a 3D version of the object.",
+                "incorrect": "The 'Photo' part is the key\u2014it's a method that uses cameras to measure and map the stone."
+            },
+            "hint": "The word starts with 'Photo,' meaning light and images."
+        },
+        {
+            "question_number": 9,
+            "question": "What is a risk of not digitizing stones in growing cities?",
+            "options": [
+                "The stones might start growing faster",
+                "They could be destroyed by new construction",
+                "People might forget how to read modern languages",
+                "The stones will turn into sand immediately"
+            ],
+            "correct_answer": "They could be destroyed by new construction",
+            "feedback_script": {
+                "correct": "Sadly, yes. Many historical stones are accidentally removed or broken when new roads or buildings are built.",
+                "incorrect": "Think about how cities change. Old landmarks are often lost to make room for new buildings."
+            },
+            "hint": "Think about what happens to old things when new buildings are made."
+        },
+        {
+            "question_number": 10,
+            "question": "If you find a hero stone, what is the best first step for conservation?",
+            "options": [
+                "Try to carve your own name on it",
+                "Report its location and take clear photos for experts",
+                "Paint it with bright colors to make it look pretty",
+                "Dig it up and take it home"
+            ],
+            "correct_answer": "Report its location and take clear photos for experts",
+            "feedback_script": {
+                "correct": "Spot on! Documentation is the first and most important step to saving our history.",
+                "incorrect": "Never try to move or change the stone yourself. The best way to help is to show experts where it is."
+            },
+            "hint": "Think about how you can share information without touching the artifact."
+        }
+    ]
+}
