@@ -11,13 +11,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Lokakavya — Heritage AR Experience</title>
   <style>
-    /* ── Design tokens ── */
+    /* ── Design tokens — Lokakavya Brand ── */
     :root {
-      --lk-primary:   #4F46E5;
-      --lk-gold:      #22D3EE;
-      --lk-ink:       #0F172A;
-      --lk-parchment: #E2E8F0;
-      --lk-stone:     #64748B;
+      --lk-primary:   hsl(20, 54%, 47%);
+      --lk-gold:      hsl(216, 42%, 34%);
+      --lk-ink:       hsl(19, 27%, 18%);
+      --lk-parchment: hsl(35, 47%, 92%);
+      --lk-stone:     hsl(19, 20%, 34%);
       --lk-correct:   #10B981;
       --lk-wrong:     #EF4444;
     }
@@ -65,9 +65,9 @@
     #exit-btn {
       position: fixed; top: 14px; right: 14px;
       z-index: 300;
-      background: rgba(26,16,8,0.7);
-      color: var(--lk-parchment);
-      border: 1px solid var(--lk-stone);
+      background: rgba(255,255,255,0.8);
+      color: var(--lk-ink);
+      border: 1px solid hsl(20 54% 47% / 0.2);
       border-radius: 8px;
       padding: 8px 16px;
       font-size: 13px;
@@ -112,10 +112,10 @@
       position: fixed;
       top: 18px; left: 14px; right: 14px;
       z-index: 30;
-      background: rgba(26,16,8,0.88);
+      background: rgba(255,255,255,0.92);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(240,192,120,0.25);
+      border: 1px solid hsl(20 54% 47% / 0.2);
       border-radius: 16px;
       padding: 11px 14px 10px;
       pointer-events: none;
@@ -139,6 +139,7 @@
       text-transform: uppercase;
       padding: 3px 9px 3px 5px;
       border-radius: 10px;
+      box-shadow: 0 2px 8px hsl(20 54% 47% / 0.2);
     }
     .q-type-icon {
       display: inline-flex; align-items: center; justify-content: center;
@@ -151,7 +152,7 @@
     .q-score-badge {
       font-size: 11px; font-weight: 700;
       color: var(--lk-gold);
-      background: rgba(240,192,120,0.15);
+      background: hsl(216 42% 34% / 0.1);
       padding: 2px 9px; border-radius: 8px;
     }
 
@@ -168,7 +169,7 @@
     }
     #q-text {
       font-size: 16px; font-weight: 600;
-      color: var(--lk-parchment); line-height: 1.45;
+      color: var(--lk-ink); line-height: 1.45;
     }
     /* ── Answer grid (bottom overlay) ── */
     #quiz-opts-wrap {
@@ -272,23 +273,24 @@
     #score-overlay.show { opacity: 1; pointer-events: auto; }
 
     #score-card {
-      background: rgba(26,16,8,0.97);
+      background: rgba(255,255,255,0.97);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(240,192,120,0.2);
+      border: 1px solid hsl(20 54% 47% / 0.15);
       border-radius: 22px;
       padding: 28px 26px 26px;
       width: 100%; max-width: 320px;
       text-align: center;
+      box-shadow: 0 8px 32px hsl(20 54% 47% / 0.1);
     }
     .score-ring-wrap {
       position: relative; width: 96px; height: 96px;
       margin: 0 auto 4px;
     }
     .score-ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-    .ring-bg   { fill: none; stroke: rgba(255,255,255,.07); stroke-width: 8; }
+    .ring-bg   { fill: none; stroke: hsl(19 27% 18% / 0.1); stroke-width: 8; }
     .ring-fill {
-      fill: none; stroke: var(--lk-gold); stroke-width: 8; stroke-linecap: round;
+      fill: none; stroke: var(--lk-primary); stroke-width: 8; stroke-linecap: round;
       stroke-dasharray: 251; stroke-dashoffset: 251;
       transition: stroke-dashoffset .7s ease;
     }
@@ -297,9 +299,9 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
     }
-    .score-big  { font-size: 34px; font-weight: 900; color: var(--lk-gold); line-height: 1; }
-    .score-of   { font-size: 11px; color: rgba(255,255,255,.32); }
-    .score-title { font-size: 18px; font-weight: 800; color: var(--lk-parchment); margin: 14px 0 5px; }
+    .score-big  { font-size: 34px; font-weight: 900; color: var(--lk-primary); line-height: 1; }
+    .score-of   { font-size: 11px; color: hsl(19 27% 18% / 0.4); }
+    .score-title { font-size: 18px; font-weight: 800; color: var(--lk-ink); margin: 14px 0 5px; }
     .score-sub   { font-size: 13px; color: var(--lk-stone); margin-bottom: 20px; line-height: 1.4; }
 
     .score-actions { display: flex; flex-direction: column; gap: 8px; }
@@ -315,14 +317,15 @@
       min-height: 48px;
       transition: background .15s;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 2px 8px hsl(20 54% 47% / 0.2);
     }
-    #retry-btn:hover { background: #3730a3; }
+    #retry-btn:hover { background: hsl(20 54% 42%); }
 
     #continue-btn {
       width: 100%; padding: 13px;
-      background: rgba(255,255,255,0.07);
-      color: var(--lk-parchment);
-      border: 1px solid rgba(255,255,255,0.13);
+      background: hsl(35 47% 92%);
+      color: var(--lk-ink);
+      border: 1px solid hsl(20 54% 47% / 0.2);
       border-radius: 12px;
       font-size: 14px; font-weight: 600;
       cursor: pointer;
@@ -330,7 +333,7 @@
       transition: background .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    #continue-btn:hover { background: rgba(255,255,255,0.12); }
+    #continue-btn:hover { background: hsl(35 47% 88%); }
 
     /* ════════════════════════════════════════════════
        SCREEN 1 — Landing page
@@ -339,9 +342,9 @@
       position: fixed; inset: 0;
       z-index: 1000;
       background:
-        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
-        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
-        #0F172A;
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(232, 151, 91, 0.25) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34, 102, 170, 0.12) 0%, transparent 55%),
+        hsl(35, 47%, 92%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       padding: 20px 24px;
@@ -352,8 +355,8 @@
       content: '';
       position: absolute; inset: 0;
       background-image:
-        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+        linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
     }
@@ -361,16 +364,16 @@
 
     .lk-wordmark {
       font-size: 26px; font-weight: 800;
-      color: var(--lk-gold);
+      color: var(--lk-primary);
       letter-spacing: 5px;
       text-transform: uppercase;
       text-align: center;
-      text-shadow: 0 0 28px rgba(34,211,238,0.45);
+      text-shadow: 0 0 28px hsl(20 54% 47% / 0.3);
       position: relative;
     }
     .lk-tagline {
       font-size: 10px;
-      color: var(--lk-stone);
+      color: hsl(19 20% 34%);
       letter-spacing: 1.2px;
       margin-top: 4px;
       text-align: center;
@@ -382,16 +385,16 @@
     #avatar-canvas {
       display: block;
       border-radius: 50%;
-      background: rgba(255,255,255,0.03);
+      background: rgba(255,255,255,0.6);
       margin: 12px 0 8px;
-      border: 1px solid rgba(34,211,238,0.22);
-      box-shadow: 0 0 32px rgba(79,70,229,0.38), 0 0 64px rgba(34,211,238,0.08);
+      border: 2px solid hsl(20, 54%, 47%);
+      box-shadow: 0 0 32px hsl(20 54% 47% / 0.2), 0 0 64px hsl(216 42% 34% / 0.1);
       position: relative;
     }
 
     .lk-welcome {
       font-size: 13px;
-      color: var(--lk-stone);
+      color: hsl(19 20% 34%);
       line-height: 1.6;
       text-align: center;
       margin-bottom: 10px;
@@ -399,12 +402,22 @@
       position: relative;
     }
 
+    .how-to-section {
+      background: rgba(255,255,255,0.7);
+      border: 1px solid hsl(20 54% 47% / 0.15);
+      border-radius: 14px;
+      padding: 12px 16px 18px;
+      width: 100%; max-width: 450px;
+      position: relative;
+      box-shadow: 0 2px 8px hsl(20 54% 47% / 0.08);
+    }
+
     .how-to-heading {
       font-size: 10px;
-      color: var(--lk-stone);
+      color: var(--lk-primary);
       text-transform: uppercase;
       letter-spacing: 2.5px;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       text-align: center;
       position: relative;
     }
@@ -412,44 +425,40 @@
     .how-to-list {
       list-style: none;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-      margin-bottom: 14px;
-      width: 100%; max-width: 300px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 0;
+      padding: 0;
+      width: 100%;
       position: relative;
     }
     .how-to-list li {
       display: flex; flex-direction: column; align-items: center;
-      gap: 5px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 12px;
-      padding: 10px 8px;
+      gap: 6px;
       text-align: center;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      padding: 0;
     }
     .step-icon {
-      font-size: 20px;
+      font-size: 24px;
       line-height: 1;
     }
     .step-label {
-      font-size: 10px; font-weight: 700;
-      color: var(--lk-gold);
+      font-size: 9px; font-weight: 600;
+      color: var(--lk-primary);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
     }
     .step-desc {
-      font-size: 11px;
-      color: var(--lk-stone);
-      line-height: 1.35;
+      font-size: 10px;
+      color: hsl(19 20% 34% / 0.65);
+      line-height: 1.3;
     }
 
     #start-btn {
       width: 100%; max-width: 300px;
       min-height: 52px;
       padding: 15px 24px;
-      background: linear-gradient(135deg, var(--lk-primary) 0%, #7C3AED 100%);
+      background: linear-gradient(135deg, var(--lk-primary) 0%, hsl(16, 52%, 50%) 100%);
       color: #fff;
       border: none;
       border-radius: 12px;
@@ -457,12 +466,13 @@
       cursor: pointer;
       letter-spacing: .8px;
       transition: box-shadow .2s, transform .1s;
-      box-shadow: 0 4px 22px rgba(79,70,229,0.5);
+      box-shadow: 0 4px 22px hsl(20 54% 47% / 0.4);
       -webkit-tap-highlight-color: transparent;
       flex-shrink: 0;
       position: relative;
+      margin-top: 20px;
     }
-    #start-btn:hover  { box-shadow: 0 6px 32px rgba(79,70,229,0.7); transform: translateY(-1px); }
+    #start-btn:hover  { box-shadow: 0 6px 32px hsl(20 54% 47% / 0.6); transform: translateY(-1px); }
     #start-btn:active { transform: scale(.98); }
 
     /* ════════════════════════════════════════════════
@@ -472,9 +482,9 @@
       position: fixed; inset: 0;
       z-index: 900;
       background:
-        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
-        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
-        #0F172A;
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(232, 151, 91, 0.25) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34, 102, 170, 0.12) 0%, transparent 55%),
+        hsl(35, 47%, 92%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       padding: 28px 24px;
@@ -509,7 +519,7 @@
 
     .ts-heading {
       font-size: 22px; font-weight: 800;
-      color: var(--lk-parchment);
+      color: var(--lk-ink);
       letter-spacing: 1px;
       text-align: center;
       margin-bottom: 6px;
@@ -531,17 +541,18 @@
     }
     .track-card {
       display: flex; align-items: center; gap: 14px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(255,255,255,0.8);
+      border: 1px solid hsl(20 54% 47% / 0.15);
       border-radius: 14px;
       padding: 16px 14px 16px 18px;
       cursor: pointer;
       text-align: left;
       width: 100%;
-      transition: background .2s, transform .15s;
+      transition: background .2s, transform .15s, box-shadow .2s;
       -webkit-tap-highlight-color: transparent;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 2px 8px hsl(20 54% 47% / 0.08);
     }
     .track-card::before {
       content: '';
@@ -555,7 +566,7 @@
     .tc-body  { flex: 1; min-width: 0; }
     .tc-title {
       font-size: 15px; font-weight: 700;
-      color: var(--lk-parchment);
+      color: var(--lk-ink);
       margin-bottom: 4px;
       display: flex; align-items: center; gap: 8px;
       flex-wrap: wrap;
@@ -565,10 +576,10 @@
       text-transform: uppercase; letter-spacing: .5px;
       padding: 2px 7px; border-radius: 6px;
     }
-    .tc-tag.green { background: rgba(16,185,129,0.18); color: #10B981; }
-    .tc-tag.cyan  { background: rgba(34,211,238,0.18); color: var(--lk-gold); }
-    .tc-desc { font-size: 12px; color: var(--lk-stone); line-height: 1.45; }
-    .tc-arrow { font-size: 20px; color: rgba(255,255,255,0.2); flex-shrink: 0; }
+    .tc-tag.green { background: hsl(20 54% 47% / 0.12); color: var(--lk-primary); }
+    .tc-tag.cyan  { background: hsl(216 42% 34% / 0.12); color: var(--lk-gold); }
+    .tc-desc { font-size: 12px; color: hsl(19 20% 34%); line-height: 1.45; }
+    .tc-arrow { font-size: 20px; color: hsl(20 54% 47% / 0.3); flex-shrink: 0; }
 
     /* ════════════════════════════════════════════════
        SCREEN 3 — Track Intro
@@ -577,9 +588,9 @@
       position: fixed; inset: 0;
       z-index: 800;
       background:
-        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
-        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
-        #0F172A;
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(232, 151, 91, 0.25) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34, 102, 170, 0.12) 0%, transparent 55%),
+        hsl(35, 47%, 92%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       padding: 32px 24px;
@@ -604,25 +615,25 @@
       margin-bottom: 16px;
       position: relative;
     }
-    .intro-badge.green { background: rgba(16,185,129,0.15); color: #10B981;        border: 1px solid rgba(16,185,129,0.3); }
-    .intro-badge.cyan  { background: rgba(34,211,238,0.15); color: var(--lk-gold); border: 1px solid rgba(34,211,238,0.3); }
+    .intro-badge.green { background: hsl(20 54% 47% / 0.12); color: var(--lk-primary); border: 1px solid hsl(20 54% 47% / 0.3); }
+    .intro-badge.cyan  { background: hsl(216 42% 34% / 0.12); color: var(--lk-gold); border: 1px solid hsl(216 42% 34% / 0.3); }
 
     .intro-icon {
       font-size: 52px;
       margin-bottom: 14px;
       position: relative;
-      filter: drop-shadow(0 0 18px rgba(79,70,229,0.55));
+      filter: drop-shadow(0 0 18px hsl(20 54% 47% / 0.3));
     }
     .intro-title {
       font-size: 22px; font-weight: 800;
-      color: var(--lk-parchment);
+      color: var(--lk-ink);
       text-align: center;
       margin-bottom: 14px;
       position: relative;
     }
     .intro-body {
       font-size: 14px;
-      color: var(--lk-stone);
+      color: hsl(19 20% 34%);
       line-height: 1.65;
       text-align: center;
       max-width: 300px;
@@ -632,20 +643,20 @@
     #begin-btn {
       width: 100%; max-width: 300px;
       height: 52px;
-      background: linear-gradient(135deg, var(--lk-primary) 0%, #7C3AED 100%);
+      background: linear-gradient(135deg, var(--lk-primary) 0%, hsl(16, 52%, 50%) 100%);
       color: #fff;
       border: none;
       border-radius: 12px;
       font-size: 15px; font-weight: 700;
       cursor: pointer;
       letter-spacing: .8px;
-      box-shadow: 0 4px 22px rgba(79,70,229,0.5);
+      box-shadow: 0 4px 22px hsl(20 54% 47% / 0.4);
       transition: box-shadow .2s, transform .1s;
       -webkit-tap-highlight-color: transparent;
       margin-bottom: 12px;
       position: relative;
     }
-    #begin-btn:hover  { box-shadow: 0 6px 32px rgba(79,70,229,0.7); transform: translateY(-1px); }
+    #begin-btn:hover  { box-shadow: 0 6px 32px hsl(20 54% 47% / 0.6); transform: translateY(-1px); }
     #begin-btn:active { transform: scale(.98); }
 
     #intro-back-btn {
@@ -678,9 +689,9 @@
       position: fixed; inset: 0;
       z-index: 60;
       background:
-        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(79,70,229,0.38) 0%, transparent 65%),
-        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34,211,238,0.14) 0%, transparent 55%),
-        #0F172A;
+        radial-gradient(ellipse 80% 55% at 50% 0%,   rgba(232, 151, 91, 0.25) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 88% 88%, rgba(34, 102, 170, 0.12) 0%, transparent 55%),
+        hsl(35, 47%, 92%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       padding: 32px 24px;
@@ -702,18 +713,18 @@
       font-size: 56px;
       margin-bottom: 16px;
       position: relative;
-      filter: drop-shadow(0 0 20px rgba(34,211,238,0.4));
+      filter: drop-shadow(0 0 20px hsl(20 54% 47% / 0.25));
     }
     .outro-title {
       font-size: 22px; font-weight: 800;
-      color: var(--lk-parchment);
+      color: var(--lk-ink);
       text-align: center;
       margin-bottom: 14px;
       position: relative;
     }
     .outro-body {
       font-size: 15px;
-      color: var(--lk-stone);
+      color: hsl(19 20% 34%);
       line-height: 1.7;
       text-align: center;
       max-width: 300px;
@@ -728,19 +739,19 @@
     #outro-track-btn {
       width: 100%;
       min-height: 52px; padding: 15px 24px;
-      background: linear-gradient(135deg, var(--lk-primary) 0%, #7C3AED 100%);
+      background: linear-gradient(135deg, var(--lk-primary) 0%, hsl(16, 52%, 50%) 100%);
       color: #fff;
       border: none;
       border-radius: 12px;
       font-size: 15px; font-weight: 700;
       cursor: pointer;
       letter-spacing: .5px;
-      box-shadow: 0 4px 22px rgba(79,70,229,0.45);
+      box-shadow: 0 4px 22px hsl(20 54% 47% / 0.4);
       transition: box-shadow .2s, transform .1s;
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
-    #outro-track-btn:hover  { box-shadow: 0 6px 32px rgba(79,70,229,0.65); transform: translateY(-1px); }
+    #outro-track-btn:hover  { box-shadow: 0 6px 32px hsl(20 54% 47% / 0.6); transform: translateY(-1px); }
     #outro-track-btn:active { transform: scale(.98); }
 
     #outro-exit-btn {
@@ -851,13 +862,15 @@
 
   <p class="lk-welcome">Lokakavya welcomes you to this heritage AR experience</p>
 
-  <p class="how-to-heading">&#8212; How to use &#8212;</p>
-  <ul class="how-to-list">
-    <li><span class="step-icon">📷</span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
-    <li><span class="step-icon">📱</span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
-    <li><span class="step-icon">👆</span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
-    <li><span class="step-icon">🧠</span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
-  </ul>
+  <div class="how-to-section">
+    <p class="how-to-heading">&#8212; How to use &#8212;</p>
+    <ul class="how-to-list">
+      <li><span class="step-icon">📷</span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
+      <li><span class="step-icon">📱</span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
+      <li><span class="step-icon">👆</span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
+      <li><span class="step-icon">🧠</span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
+    </ul>
+  </div>
 
   <button id="start-btn" aria-label="Start the heritage AR experience">
     &#9654; &nbsp;Start Experience
@@ -893,7 +906,7 @@
 
     <div class="track-card herostone" id="track-herostone"
          role="button" tabindex="0" aria-label="Hero Stones track">
-      <div class="tc-icon">🗿</div>
+      <div class="tc-icon">⛏️</div>
       <div class="tc-body">
         <div class="tc-title">Hero Stones <span class="tc-tag green">Conservation</span></div>
         <div class="tc-desc">Explore Veeragallu monuments and discover how 3D scanning preserves Karnataka's heritage.</div>
@@ -903,7 +916,7 @@
 
     <div class="track-card temple" id="track-temple"
          role="button" tabindex="0" aria-label="Temple Inscription track">
-      <div class="tc-icon">🏛️</div>
+      <div class="tc-icon">🛕</div>
       <div class="tc-body">
         <div class="tc-title">Temple Inscription <span class="tc-tag cyan">1534 CE</span></div>
         <div class="tc-desc">Uncover the secrets of the Chakkere Tirumala Temple and the Vijayanagar Empire.</div>

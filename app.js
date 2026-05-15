@@ -81,32 +81,95 @@ function initAvatarCanvas() {
   renderer2.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer2.setSize(140, 140);
   renderer2.setClearColor(0x000000, 0);
+  renderer2.shadowMap.enabled = true;
+  renderer2.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const sc  = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
   cam.position.set(0, 1, 3.5);
   cam.lookAt(0, 0.8, 0);
 
-  sc.add(new THREE.AmbientLight(0xffffff, 0.9));
-  const sun2 = new THREE.DirectionalLight(0xfff6e0, 1.2);
-  sun2.position.set(2, 4, 3);
+  sc.add(new THREE.AmbientLight(0xffffff, 1.1));
+  const sun2 = new THREE.DirectionalLight(0xfff6e0, 1.6);
+  sun2.position.set(3, 5, 3.5);
+  sun2.castShadow = true;
   sc.add(sun2);
+  const fill = new THREE.DirectionalLight(0xaaccff, 0.6);
+  fill.position.set(-2, 2, -3);
+  sc.add(fill);
+
+  let modelRef = null;
+  let autoRotate = true;
+  let dragStart = { x: 0, y: 0 };
+  let isPointerDown = false;
+  const modelRotation = { x: 0, y: 0 };
 
   const loader2 = new GLTFLoader();
   loader2.load(
-    'CesiumMan.glb',
+    'bayabird.glb',
     gltf => {
-      const m   = gltf.scene;
-      const box = new THREE.Box3().setFromObject(m);
+      modelRef = gltf.scene;
+
+      // Ensure all materials respond to lighting
+      modelRef.traverse(node => {
+        if (node.isMesh && node.material) {
+          if (node.material.map) node.material.map.encoding = THREE.sRGBEncoding;
+          node.material.side = THREE.FrontSide;
+          // Convert to lit material if needed
+          if (node.material.type === 'MeshBasicMaterial' || !node.material.metalness) {
+            const newMat = new THREE.MeshStandardMaterial({
+              map: node.material.map,
+              color: node.material.color,
+              roughness: 0.6,
+              metalness: 0.1,
+            });
+            node.material = newMat;
+          }
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+
+      const box = new THREE.Box3().setFromObject(modelRef);
       const sz  = box.getSize(new THREE.Vector3());
       const s   = 1.6 / Math.max(sz.x, sz.y, sz.z);
-      m.scale.setScalar(s);
-      const b2 = new THREE.Box3().setFromObject(m);
-      m.position.y = -b2.min.y;
-      sc.add(m);
+      modelRef.scale.setScalar(s);
+      const b2 = new THREE.Box3().setFromObject(modelRef);
+      modelRef.position.y = -b2.min.y;
+      sc.add(modelRef);
+
+      avatarCanvas.addEventListener('pointerdown', e => {
+        isPointerDown = true;
+        autoRotate = false;
+        dragStart.x = e.clientX;
+        dragStart.y = e.clientY;
+      });
+      avatarCanvas.addEventListener('pointermove', e => {
+        if (!isPointerDown) return;
+        const deltaX = e.clientX - dragStart.x;
+        const deltaY = e.clientY - dragStart.y;
+        modelRotation.y += deltaX * 0.01;
+        modelRotation.x += deltaY * 0.01;
+        dragStart.x = e.clientX;
+        dragStart.y = e.clientY;
+      });
+      avatarCanvas.addEventListener('pointerup', () => {
+        isPointerDown = false;
+        autoRotate = true;
+      });
+      avatarCanvas.addEventListener('pointerleave', () => {
+        isPointerDown = false;
+        autoRotate = true;
+      });
+
       (function avatarLoop() {
         avatarRafId = requestAnimationFrame(avatarLoop);
-        if (!reducedMotion) m.rotation.y += 0.008;
+        if (!isPointerDown) {
+          if (autoRotate && !reducedMotion) modelRotation.y += 0.008;
+        }
+        modelRef.rotation.order = 'YXZ';
+        modelRef.rotation.y = modelRotation.y;
+        modelRef.rotation.x = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, modelRotation.x));
         renderer2.render(sc, cam);
       })();
     },
@@ -133,6 +196,16 @@ let ground, reticleGroup, heroModel;
 const raycaster = new THREE.Raycaster();
 const pointer   = new THREE.Vector2();
 
+// Model interaction state
+let modelInteraction = {
+  rotation: { x: 0, y: 0 },
+  zoom: 1,
+  pan: { x: 0, z: 0 },
+  isDragging: false,
+  dragStart: { x: 0, y: 0 },
+  initialPos: { x: 0, y: 0, z: 0 },
+};
+
 function initThree() {
   const canvas = document.getElementById('ar-canvas');
 
@@ -146,8 +219,8 @@ function initThree() {
 
   scene  = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 80);
-  camera.position.set(0, 1.1, 2.2);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 0.7, 2.2);
+  camera.lookAt(0, -0.3, 0);
 
   /* ─ invisible ground plane for hit-testing ─ */
   ground = new THREE.Mesh(
@@ -221,9 +294,16 @@ function initThree() {
       reticleGroup.children[1].material.opacity = reducedMotion ? 0.12 : 0.07 + Math.sin(t * 2.8) * 0.05;
     }
 
-    if (heroModel && !reducedMotion) {
-      heroModel.rotation.y = t * 0.4;
-      heroModel.position.y = heroModel.userData.baseY + Math.sin(t * 1.1) * 0.018;
+    if (heroModel) {
+      const bobbing = !reducedMotion ? Math.sin(t * 1.1) * 0.018 : 0;
+      // Apply interactive transformations
+      heroModel.rotation.order = 'YXZ';
+      heroModel.rotation.y = modelInteraction.rotation.y;
+      heroModel.rotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, modelInteraction.rotation.x));
+      heroModel.scale.setScalar(heroModel.userData.baseScale * modelInteraction.zoom);
+      heroModel.position.x = modelInteraction.initialPos.x + modelInteraction.pan.x;
+      heroModel.position.y = modelInteraction.initialPos.y + bobbing;
+      heroModel.position.z = modelInteraction.initialPos.z + modelInteraction.pan.z;
     }
 
     renderer.render(scene, camera);
@@ -276,30 +356,98 @@ stage.addEventListener('touchend', e => {
   if (p) placeModel(p);
 }, { passive: false });
 
+// Model interaction: rotate, pan, zoom (use document to work even when stage is pointer-events: none)
+document.addEventListener('pointerdown', e => {
+  if (!modelPlaced) return;
+  modelInteraction.isDragging = true;
+  modelInteraction.dragStart.x = e.clientX;
+  modelInteraction.dragStart.y = e.clientY;
+});
+
+document.addEventListener('pointermove', e => {
+  if (!modelPlaced || !modelInteraction.isDragging) return;
+  const deltaX = e.clientX - modelInteraction.dragStart.x;
+  const deltaY = e.clientY - modelInteraction.dragStart.y;
+
+  if (e.shiftKey) {
+    modelInteraction.pan.x += deltaX * 0.003;
+    modelInteraction.pan.z -= deltaY * 0.003;
+  } else {
+    modelInteraction.rotation.y += deltaX * 0.01;
+    modelInteraction.rotation.x += deltaY * 0.01;
+  }
+
+  modelInteraction.dragStart.x = e.clientX;
+  modelInteraction.dragStart.y = e.clientY;
+});
+
+document.addEventListener('pointerup', () => {
+  modelInteraction.isDragging = false;
+});
+
+document.addEventListener('wheel', e => {
+  if (!modelPlaced) return;
+  e.preventDefault();
+  modelInteraction.zoom -= e.deltaY * 0.001;
+  modelInteraction.zoom = Math.max(0.5, Math.min(3, modelInteraction.zoom));
+}, { passive: false });
+
 /* ═══════════════════════════════════════════════════════════════
    PLACE MODEL
 ═══════════════════════════════════════════════════════════════ */
 function placeModel(point) {
   const loader = new GLTFLoader();
-  // TODO: replace 'Avocado.glb' with 'herostone.glb' when asset is ready
   loader.load(
-    'Avocado.glb',
+    'untitled.glb',
     gltf => {
       heroModel = gltf.scene;
       heroModel.traverse(n => {
-        if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; }
+        if (n.isMesh) {
+          n.castShadow = true;
+          n.receiveShadow = true;
+
+          // Ensure material responds to lighting
+          if (n.material) {
+            if (n.material.map) n.material.map.encoding = THREE.sRGBEncoding;
+            n.material.side = THREE.FrontSide;
+
+            // Convert to lit material if needed
+            if (n.material.type === 'MeshBasicMaterial' || !n.material.metalness) {
+              const newMat = new THREE.MeshStandardMaterial({
+                map: n.material.map,
+                color: n.material.color,
+                roughness: 0.5,
+                metalness: 0.2,
+              });
+              n.material = newMat;
+            }
+          }
+        }
       });
 
       const box  = new THREE.Box3().setFromObject(heroModel);
       const size = box.getSize(new THREE.Vector3());
-      const s    = 0.48 / Math.max(size.x, size.y, size.z);
+      const baseScale = window.innerWidth > 768 ? 0.9 : 0.55;
+      const s    = baseScale / Math.max(size.x, size.y, size.z);
       heroModel.scale.setScalar(s);
 
       const b2    = new THREE.Box3().setFromObject(heroModel);
       const baseY = -b2.min.y;
       heroModel.position.set(point.x, baseY, point.z);
       heroModel.userData.baseY = baseY;
+      heroModel.userData.baseScale = s;
+      // Straighten the model orientation
+      heroModel.rotation.order = 'YXZ';
+      heroModel.rotation.x = 0;
+      heroModel.rotation.y = 0;
+      heroModel.rotation.z = 0;
       scene.add(heroModel);
+
+      // Reset interaction state for new model
+      modelInteraction.rotation = { x: 0, y: 0 };
+      modelInteraction.zoom = 1;
+      modelInteraction.pan = { x: 0, z: 0 };
+      modelInteraction.initialPos = { x: point.x, y: baseY, z: point.z };
 
       heroModel.scale.setScalar(0);
       let frame = 0;
@@ -461,22 +609,33 @@ function renderQuestion() {
   const ltrs = ['A', 'B', 'C', 'D'];
   const cls  = ['a', 'b', 'c', 'd'];
 
+  // Shuffle options and track the correct answer's new index
+  const shuffled = d.opts.map((text, idx) => ({ text, originalIdx: idx }));
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const correctIdx = shuffled.findIndex(o => o.originalIdx === d.ans);
+
   document.getElementById('q-num').textContent   = `Q ${qIdx + 1} / ${sessionQuiz.length}`;
   document.getElementById('q-score').textContent = `${score} / ${sessionQuiz.length}`;
   document.getElementById('q-text').textContent  = d.q;
 
   const el = document.getElementById('opts');
   el.innerHTML = '';
-  d.opts.forEach((text, i) => {
+  shuffled.forEach((item, i) => {
     const btn = document.createElement('button');
     btn.className = `opt ${cls[i]}`;
-    btn.innerHTML = `<span class="opt-ltr">${ltrs[i]}</span>${text}`;
-    btn.addEventListener('click', () => pickAnswer(i));
+    btn.innerHTML = `<span class="opt-ltr">${ltrs[i]}</span>${item.text}`;
+    btn.addEventListener('click', () => pickAnswer(i, correctIdx));
     el.appendChild(btn);
   });
+
+  // Store correct index for this question
+  sessionQuiz[qIdx].currentCorrectIdx = correctIdx;
 }
 
-function pickAnswer(i) {
+function pickAnswer(i, correctIdx) {
   if (answered) return;
   answered = true;
 
@@ -485,7 +644,7 @@ function pickAnswer(i) {
 
   btns.forEach(b => b.classList.add('locked'));
 
-  if (i === d.ans) {
+  if (i === correctIdx) {
     btns[i].classList.add('correct');
     btns.forEach((b, j) => { if (j !== i) b.classList.add('dim'); });
     score++;
@@ -493,8 +652,8 @@ function pickAnswer(i) {
     showFeedbackPopup(true, d.ok);
   } else {
     btns[i].classList.add('wrong');
-    btns[d.ans].classList.add('correct');
-    btns.forEach((b, j) => { if (j !== i && j !== d.ans) b.classList.add('dim'); });
+    btns[correctIdx].classList.add('correct');
+    btns.forEach((b, j) => { if (j !== i && j !== correctIdx) b.classList.add('dim'); });
     document.getElementById('q-score').textContent = `${score} / ${sessionQuiz.length}`;
     showFeedbackPopup(false, d.bad);
   }
