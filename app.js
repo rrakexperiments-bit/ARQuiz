@@ -398,7 +398,7 @@ document.addEventListener('wheel', e => {
 function placeModel(point) {
   const loader = new GLTFLoader();
   loader.load(
-    'untitled.glb',
+    'Avocado.glb',
     gltf => {
       heroModel = gltf.scene;
       heroModel.traverse(n => {
