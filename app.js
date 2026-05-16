@@ -219,8 +219,8 @@ function initThree() {
 
   scene  = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 80);
-  camera.position.set(0, 0.7, 2.2);
-  camera.lookAt(0, -0.3, 0);
+  camera.position.set(0, 0.8, 2.2);
+  camera.lookAt(0, 0.5, 0);
 
   /* ─ invisible ground plane for hit-testing ─ */
   ground = new THREE.Mesh(
@@ -256,15 +256,15 @@ function initThree() {
   reticleGroup.add(mkLine(0, -0.3, 0, 0.3));
 
   /* ─ lights ─ */
-  scene.add(new THREE.AmbientLight(0xffffff, 0.82));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
-  const sun = new THREE.DirectionalLight(0xfff6e0, 1.4);
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
   sun.position.set(3, 5, 3);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
   scene.add(sun);
 
-  const fillLight = new THREE.DirectionalLight(0xaaccff, 0.45);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
   fillLight.position.set(-2, 2, -3);
   scene.add(fillLight);
 
@@ -299,7 +299,7 @@ function initThree() {
       // Apply interactive transformations
       heroModel.rotation.order = 'YXZ';
       heroModel.rotation.y = modelInteraction.rotation.y;
-      heroModel.rotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, modelInteraction.rotation.x));
+      heroModel.rotation.x = modelInteraction.rotation.x;
       heroModel.scale.setScalar(heroModel.userData.baseScale * modelInteraction.zoom);
       heroModel.position.x = modelInteraction.initialPos.x + modelInteraction.pan.x;
       heroModel.position.y = modelInteraction.initialPos.y + bobbing;
@@ -389,7 +389,6 @@ document.addEventListener('wheel', e => {
   if (!modelPlaced) return;
   e.preventDefault();
   modelInteraction.zoom -= e.deltaY * 0.001;
-  modelInteraction.zoom = Math.max(0.5, Math.min(3, modelInteraction.zoom));
 }, { passive: false });
 
 /* ═══════════════════════════════════════════════════════════════
@@ -398,36 +397,34 @@ document.addEventListener('wheel', e => {
 function placeModel(point) {
   const loader = new GLTFLoader();
   loader.load(
-    'ChakkereCP155_vox2.glb',
+    'ChakkereCP155_vox2_colored.glb',
     gltf => {
       heroModel = gltf.scene;
       heroModel.traverse(n => {
         if (n.isMesh) {
-          n.castShadow = true;
-          n.receiveShadow = true;
-
-          // Ensure material responds to lighting
+          n.castShadow = false;
+          n.receiveShadow = false;
           if (n.material) {
-            if (n.material.map) n.material.map.encoding = THREE.sRGBEncoding;
-            n.material.side = THREE.FrontSide;
-
-            // Convert to lit material if needed
-            if (n.material.type === 'MeshBasicMaterial' || !n.material.metalness) {
-              const newMat = new THREE.MeshStandardMaterial({
-                map: n.material.map,
-                color: n.material.color,
-                roughness: 0.5,
-                metalness: 0.2,
-              });
-              n.material = newMat;
-            }
+            n.material.side = THREE.DoubleSide;
           }
         }
       });
 
+      // Add dedicated lights for the model only
+      const modelAmbient = new THREE.AmbientLight(0xffffff, 0.2);
+      heroModel.add(modelAmbient);
+
+      const modelSun = new THREE.DirectionalLight(0xffffff, 0.6);
+      modelSun.position.set(3, 5, 3);
+      heroModel.add(modelSun);
+
+      const modelFill = new THREE.DirectionalLight(0xffffff, 0.15);
+      modelFill.position.set(-2, 2, -3);
+      heroModel.add(modelFill);
+
       const box  = new THREE.Box3().setFromObject(heroModel);
       const size = box.getSize(new THREE.Vector3());
-      const baseScale = window.innerWidth > 768 ? 0.9 : 0.55;
+      const baseScale = window.innerWidth > 768 ? 0.55 : 0.35;
       const s    = baseScale / Math.max(size.x, size.y, size.z);
       heroModel.scale.setScalar(s);
 
@@ -436,10 +433,10 @@ function placeModel(point) {
       heroModel.position.set(point.x, baseY, point.z);
       heroModel.userData.baseY = baseY;
       heroModel.userData.baseScale = s;
-      // Straighten the model orientation
+      // Try rotating 180 degrees
       heroModel.rotation.order = 'YXZ';
       heroModel.rotation.x = 0;
-      heroModel.rotation.y = 0;
+      heroModel.rotation.y = Math.PI;
       heroModel.rotation.z = 0;
       scene.add(heroModel);
 
