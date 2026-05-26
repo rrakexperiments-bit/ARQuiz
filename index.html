@@ -619,9 +619,14 @@
     .intro-badge.cyan  { background: hsl(216 42% 34% / 0.12); color: var(--lk-gold); border: 1px solid hsl(216 42% 34% / 0.3); }
 
     .intro-icon {
-      font-size: 52px;
       margin-bottom: 14px;
       position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .intro-icon img {
       filter: drop-shadow(0 0 18px hsl(20 54% 47% / 0.3));
     }
     .intro-title {
@@ -856,19 +861,21 @@
   <div class="lk-wordmark">Lokakavya</div>
   <div class="lk-tagline">Digital Heritage, Oral Histories, and Community Storytelling</div>
 
-  <!-- cesiumman.glb rendered in its own small canvas — does NOT use main AR canvas -->
-  <canvas id="avatar-canvas" width="140" height="140"
-          aria-label="Rotating heritage figure"></canvas>
+  <!-- Lokakavya logo -->
+  <div style="width: 110px; height: 110px; margin: 12px 0 8px; border-radius: 12px; border: 2px solid hsl(20, 54%, 47%); display: flex; align-items: center; justify-content: center; padding: 8px;">
+    <img src="lokakavya-logo.png" alt="Lokakavya"
+         style="width: 80px; height: 80px; object-fit: contain;">
+  </div>
 
   <p class="lk-welcome">Lokakavya welcomes you to this heritage AR experience</p>
 
   <div class="how-to-section">
     <p class="how-to-heading">&#8212; How to use &#8212;</p>
     <ul class="how-to-list">
-      <li><span class="step-icon">📷</span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
-      <li><span class="step-icon">📱</span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
-      <li><span class="step-icon">👆</span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
-      <li><span class="step-icon">🧠</span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
+      <li><span class="step-icon"><img src="camera.png" alt="Camera" style="width:32px;height:32px;object-fit:contain;"></span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
+      <li><span class="step-icon"><img src="scanner.png" alt="Scan" style="width:32px;height:32px;object-fit:contain;"></span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
+      <li><span class="step-icon"><img src="Tap.png" alt="Tap" style="width:40px;height:40px;object-fit:contain;"></span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
+      <li><span class="step-icon"><img src="Quiz.png" alt="Quiz" style="width:40px;height:40px;object-fit:contain;"></span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
     </ul>
   </div>
 
@@ -906,7 +913,7 @@
 
     <div class="track-card herostone" id="track-herostone"
          role="button" tabindex="0" aria-label="Hero Stones track">
-      <div class="tc-icon">⛏️</div>
+      <img src="hero-icon.png" alt="Hero Stones" class="tc-icon" style="width: 28px; height: 28px; object-fit: contain;">
       <div class="tc-body">
         <div class="tc-title">Hero Stones <span class="tc-tag green">Conservation</span></div>
         <div class="tc-desc">Explore Veeragallu monuments and discover how 3D scanning preserves Karnataka's heritage.</div>
@@ -916,7 +923,7 @@
 
     <div class="track-card temple" id="track-temple"
          role="button" tabindex="0" aria-label="Temple Inscription track">
-      <div class="tc-icon">🛕</div>
+      <img src="temple-icon.png" alt="Temple" class="tc-icon" style="width: 28px; height: 28px; object-fit: contain;">
       <div class="tc-body">
         <div class="tc-title">Temple Inscription <span class="tc-tag cyan">1534 CE</span></div>
         <div class="tc-desc">Uncover the secrets of the Chakkere Tirumala Temple and the Vijayanagar Empire.</div>

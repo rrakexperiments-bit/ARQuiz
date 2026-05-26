@@ -114,7 +114,7 @@ function initAvatarCanvas() {
       modelRef.traverse(node => {
         if (node.isMesh && node.material) {
           if (node.material.map) node.material.map.encoding = THREE.sRGBEncoding;
-          node.material.side = THREE.FrontSide;
+          node.material.side = THREE.DoubleSide;
           // Convert to lit material if needed
           if (node.material.type === 'MeshBasicMaterial' || !node.material.metalness) {
             const newMat = new THREE.MeshStandardMaterial({
@@ -213,7 +213,8 @@ function initThree() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x000000, 0);
-  renderer.outputEncoding  = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.5;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type  = THREE.PCFSoftShadowMap;
 
@@ -404,9 +405,15 @@ function placeModel(point) {
         if (n.isMesh) {
           n.castShadow = false;
           n.receiveShadow = false;
-          if (n.material) {
-            n.material.side = THREE.DoubleSide;
-          }
+          const mats = Array.isArray(n.material) ? n.material : [n.material];
+          mats.forEach(m => {
+            if (!m) return;
+            m.side        = THREE.DoubleSide;
+            m.transparent = false;
+            m.alphaTest   = 0;
+            m.depthWrite  = true;
+            m.needsUpdate = true;
+          });
         }
       });
 
@@ -512,14 +519,14 @@ function showTrackSelect() {
 
 const TRACK_CONFIG = {
   herostone: {
-    icon:        '🗿',
+    icon:        'hero-icon.png',
     badge:       'Hero Stones',
     title:       'Guardians of History',
     body:        'This quiz explores the fascinating world of Hero Stones (known as Veeragallu in Karnataka), which are ancient monuments dedicated to brave individuals. You will learn about how these stones "tell" stories through carvings and why modern technology like 3D scanning is vital to saving them for the future.',
     accentClass: 'green',
   },
   temple: {
-    icon:        '🏛️',
+    icon:        'temple-icon.png',
     badge:       'Temple Inscription',
     title:       'Chronicles in Stone',
     body:        "This quiz will help you explore the historical secrets of the Chakkere Tirumala Temple inscription from 1534 CE. You'll learn about the kings, the special symbols carved on stone, and how people looked after temples during the Vijayanagar Empire.",
@@ -531,7 +538,7 @@ function showTrackIntro(trackId) {
   activeTrack = trackId;
   const cfg   = TRACK_CONFIG[trackId];
 
-  document.getElementById('intro-icon').textContent  = cfg.icon;
+  document.getElementById('intro-icon').innerHTML    = `<img src="${cfg.icon}" alt="${cfg.badge}" style="width: 52px; height: 52px; object-fit: contain;">`;
   document.getElementById('intro-badge').textContent = cfg.badge;
   document.getElementById('intro-badge').className   = `intro-badge ${cfg.accentClass}`;
   document.getElementById('intro-title').textContent = cfg.title;
@@ -776,9 +783,10 @@ document.getElementById('intro-back-btn').addEventListener('click', goBackToTrac
 document.getElementById('begin-btn').addEventListener('click', beginExperience);
 
 /* ═══════════════════════════════════════════════════════════════
-   BOOT — initialise avatar and pre-fetch both quiz files in parallel
+   BOOT — pre-fetch both quiz files in parallel
 ═══════════════════════════════════════════════════════════════ */
-initAvatarCanvas();
+// Avatar canvas replaced with static Lokakavya logo
+// initAvatarCanvas();
 
 loadAllQuizData().catch(err => {
   console.error('Failed to load quiz data:', err);
