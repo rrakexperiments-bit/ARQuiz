@@ -358,32 +358,82 @@ stage.addEventListener('touchend', e => {
 }, { passive: false });
 
 // Model interaction: rotate, pan, zoom (use document to work even when stage is pointer-events: none)
+// Multi-touch interaction: single pointer = rotate, two pointers = pinch-zoom + pan
+const activePointers = new Map();
+let lastPinchDist = null;
+let lastPinchMid  = null;
+
+function pinchState() {
+  const pts = [...activePointers.values()];
+  return {
+    dist: Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y),
+    mid:  { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 },
+  };
+}
+
 document.addEventListener('pointerdown', e => {
   if (!modelPlaced) return;
-  modelInteraction.isDragging = true;
-  modelInteraction.dragStart.x = e.clientX;
-  modelInteraction.dragStart.y = e.clientY;
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (activePointers.size === 1) {
+    modelInteraction.isDragging = true;
+    modelInteraction.dragStart.x = e.clientX;
+    modelInteraction.dragStart.y = e.clientY;
+  } else if (activePointers.size === 2) {
+    modelInteraction.isDragging = false;
+    const s = pinchState();
+    lastPinchDist = s.dist;
+    lastPinchMid  = s.mid;
+  }
 });
 
 document.addEventListener('pointermove', e => {
-  if (!modelPlaced || !modelInteraction.isDragging) return;
-  const deltaX = e.clientX - modelInteraction.dragStart.x;
-  const deltaY = e.clientY - modelInteraction.dragStart.y;
+  if (!modelPlaced || !activePointers.has(e.pointerId)) return;
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-  if (e.shiftKey) {
-    modelInteraction.pan.x += deltaX * 0.003;
-    modelInteraction.pan.z -= deltaY * 0.003;
-  } else {
-    modelInteraction.rotation.y += deltaX * 0.01;
-    modelInteraction.rotation.x += deltaY * 0.01;
+  if (activePointers.size >= 2) {
+    const s = pinchState();
+    if (lastPinchDist) modelInteraction.zoom *= s.dist / lastPinchDist;
+    if (lastPinchMid) {
+      modelInteraction.pan.x += (s.mid.x - lastPinchMid.x) * 0.003;
+      modelInteraction.pan.z -= (s.mid.y - lastPinchMid.y) * 0.003;
+    }
+    lastPinchDist = s.dist;
+    lastPinchMid  = s.mid;
+    return;
   }
 
-  modelInteraction.dragStart.x = e.clientX;
-  modelInteraction.dragStart.y = e.clientY;
+  if (modelInteraction.isDragging) {
+    const dx = e.clientX - modelInteraction.dragStart.x;
+    const dy = e.clientY - modelInteraction.dragStart.y;
+    if (e.shiftKey) {
+      modelInteraction.pan.x += dx * 0.003;
+      modelInteraction.pan.z -= dy * 0.003;
+    } else {
+      modelInteraction.rotation.y += dx * 0.01;
+      modelInteraction.rotation.x += dy * 0.01;
+    }
+    modelInteraction.dragStart.x = e.clientX;
+    modelInteraction.dragStart.y = e.clientY;
+  }
 });
 
-document.addEventListener('pointerup', () => {
-  modelInteraction.isDragging = false;
+document.addEventListener('pointerup', e => {
+  activePointers.delete(e.pointerId);
+  lastPinchDist = null;
+  lastPinchMid  = null;
+  if (activePointers.size === 1) {
+    const [pt] = activePointers.values();
+    modelInteraction.isDragging = true;
+    modelInteraction.dragStart.x = pt.x;
+    modelInteraction.dragStart.y = pt.y;
+  } else if (activePointers.size === 0) {
+    modelInteraction.isDragging = false;
+  }
+});
+
+document.addEventListener('pointercancel', e => {
+  activePointers.delete(e.pointerId);
+  if (activePointers.size < 2) { lastPinchDist = null; lastPinchMid = null; }
 });
 
 document.addEventListener('wheel', e => {
