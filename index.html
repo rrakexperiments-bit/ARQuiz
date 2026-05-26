@@ -439,8 +439,17 @@
       padding: 0;
     }
     .step-icon {
-      font-size: 24px;
-      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+    .step-icon img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
     }
     .step-label {
       font-size: 9px; font-weight: 600;
@@ -872,10 +881,10 @@
   <div class="how-to-section">
     <p class="how-to-heading">&#8212; How to use &#8212;</p>
     <ul class="how-to-list">
-      <li><span class="step-icon"><img src="camera.png" alt="Camera" style="width:32px;height:32px;object-fit:contain;"></span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
-      <li><span class="step-icon"><img src="scanner.png" alt="Scan" style="width:32px;height:32px;object-fit:contain;"></span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
-      <li><span class="step-icon"><img src="Tap.png" alt="Tap" style="width:40px;height:40px;object-fit:contain;"></span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
-      <li><span class="step-icon"><img src="Quiz.png" alt="Quiz" style="width:40px;height:40px;object-fit:contain;"></span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
+      <li><span class="step-icon"><img src="camera.png" alt="Camera"></span><span class="step-label">Camera</span><span class="step-desc">Allow camera access</span></li>
+      <li><span class="step-icon"><img src="scanner.png" alt="Scan"></span><span class="step-label">Scan</span><span class="step-desc">Move phone slowly</span></li>
+      <li><span class="step-icon"><img src="tap-icon.png" alt="Tap"></span><span class="step-label">Tap</span><span class="step-desc">Place on glowing ring</span></li>
+      <li><span class="step-icon"><img src="quiz-icon.png" alt="Quiz"></span><span class="step-label">Quiz</span><span class="step-desc">Answer &amp; learn</span></li>
     </ul>
   </div>
 
