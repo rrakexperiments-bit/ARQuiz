@@ -322,6 +322,18 @@ function groundHit(clientX, clientY) {
   return hits.length ? hits[0].point : null;
 }
 
+// Project a screen point onto the ground plane — used for accurate two-finger pan
+function screenToGround(clientX, clientY) {
+  const r = new THREE.Raycaster();
+  const p = new THREE.Vector2(
+    (clientX  / window.innerWidth)  * 2 - 1,
+    -(clientY / window.innerHeight) * 2 + 1
+  );
+  r.setFromCamera(p, camera);
+  const hits = r.intersectObject(ground);
+  return hits.length ? hits[0].point : null;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    AR STATE — hit stage pointer events
 ═══════════════════════════════════════════════════════════════ */
@@ -394,8 +406,12 @@ document.addEventListener('pointermove', e => {
     const s = pinchState();
     if (lastPinchDist) modelInteraction.zoom *= s.dist / lastPinchDist;
     if (lastPinchMid) {
-      modelInteraction.pan.x += (s.mid.x - lastPinchMid.x) * 0.003;
-      modelInteraction.pan.z -= (s.mid.y - lastPinchMid.y) * 0.003;
+      const worldCurr = screenToGround(s.mid.x, s.mid.y);
+      const worldLast = screenToGround(lastPinchMid.x, lastPinchMid.y);
+      if (worldCurr && worldLast) {
+        modelInteraction.pan.x += worldCurr.x - worldLast.x;
+        modelInteraction.pan.z += worldCurr.z - worldLast.z;
+      }
     }
     lastPinchDist = s.dist;
     lastPinchMid  = s.mid;
