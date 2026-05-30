@@ -497,7 +497,7 @@ function placeModel(point) {
 
       const box  = new THREE.Box3().setFromObject(heroModel);
       const size = box.getSize(new THREE.Vector3());
-      const baseScale = window.innerWidth > 768 ? 0.55 : 0.5;
+      const baseScale = window.innerWidth > 768 ? 0.55 : 0.7;
       const s    = baseScale / Math.max(size.x, size.y, size.z);
       heroModel.scale.setScalar(s);
 
