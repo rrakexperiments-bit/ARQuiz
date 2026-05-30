@@ -786,21 +786,22 @@ function formatTime(ms) {
 }
 
 function renderBreakdown() {
-  document.getElementById('score-total-time').textContent = `Total time: ${formatTime(sessionTotalTime)}`;
-  const el = document.getElementById('score-breakdown');
-  el.innerHTML = sessionQuiz.map((q, i) => {
-    const ok  = q.firstTry !== false;
-    const cls = ok ? 'bd-ok' : 'bd-retry';
-    const ico = ok ? '✓' : '↩';
-    const txt = q.q.length > 48 ? q.q.slice(0, 48) + '…' : q.q;
-    const t   = formatTime(questionTimes[i] ?? 0);
-    return `<div class="bd-row">
-      <span class="bd-q">Q${i + 1}</span>
-      <span class="${cls}">${ico}</span>
-      <span class="bd-text">${txt}</span>
-      <span class="bd-time">${t}</span>
-    </div>`;
-  }).join('');
+  try {
+    document.getElementById('score-total-time').textContent = `Total time: ${formatTime(sessionTotalTime)}`;
+    const el = document.getElementById('score-breakdown');
+    el.innerHTML = sessionQuiz.map((q, i) => {
+      const ok  = q.firstTry !== false;
+      const cls = ok ? 'bd-ok' : 'bd-retry';
+      const ico = ok ? '✓' : '↩';
+      const raw = typeof q.q === 'string' ? q.q : String(q.q ?? '');
+      const txt = raw.length > 48 ? raw.slice(0, 48) + '…' : raw;
+      const t   = formatTime(questionTimes[i] ?? 0);
+      return `<div class="bd-row"><span class="bd-q">Q${i + 1}</span><span class="${cls}">${ico}</span><span class="bd-text">${txt}</span><span class="bd-time">${t}</span></div>`;
+    }).join('');
+  } catch (e) {
+    console.error('renderBreakdown error:', e);
+    document.getElementById('score-total-time').textContent = 'Debug: ' + e.message;
+  }
 }
 
 function showScore() {
