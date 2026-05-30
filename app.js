@@ -658,9 +658,13 @@ async function beginExperience() {
    QUIZ LOGIC
 ═══════════════════════════════════════════════════════════════ */
 let qIdx = 0, score = 0, answered = false;
+let sessionStartTime = 0, questionStartTime = 0;
+let questionTimes = [];
+let sessionTotalTime = 0;
 
 function openQuiz() {
   qIdx = 0; score = 0; answered = false;
+  questionTimes = []; sessionStartTime = Date.now();
   const pool = activeTrack === 'herostone' ? QUIZ_HEROSTONE : QUIZ_TEMPLE;
   sessionQuiz = shuffle(pool).slice(0, SESSION_SIZE);
 
@@ -675,6 +679,8 @@ function openQuiz() {
 
 function renderQuestion() {
   answered = false;
+  questionStartTime = Date.now();
+  sessionQuiz[qIdx].firstTry = true;
   const d    = sessionQuiz[qIdx];
   const ltrs = ['A', 'B', 'C', 'D'];
   const cls  = ['a', 'b', 'c', 'd'];
@@ -715,12 +721,14 @@ function pickAnswer(i, correctIdx) {
   btns.forEach(b => b.classList.add('locked'));
 
   if (i === correctIdx) {
+    questionTimes[qIdx] = Date.now() - questionStartTime;
     btns[i].classList.add('correct');
     btns.forEach((b, j) => { if (j !== i) b.classList.add('dim'); });
     score++;
     document.getElementById('q-score').textContent = `${score} / ${sessionQuiz.length}`;
     showFeedbackPopup(true, d.ok);
   } else {
+    sessionQuiz[qIdx].firstTry = false;
     btns[i].classList.add('wrong');
     btns[correctIdx].classList.add('correct');
     btns.forEach((b, j) => { if (j !== i && j !== correctIdx) b.classList.add('dim'); });
@@ -771,7 +779,32 @@ function getScoreMessage(s, total) {
   return                   { title: 'Keep trying!',        sub: 'Every question you get wrong is something new you learned!' };
 }
 
+function formatTime(ms) {
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+function renderBreakdown() {
+  document.getElementById('score-total-time').textContent = `Total time: ${formatTime(sessionTotalTime)}`;
+  const el = document.getElementById('score-breakdown');
+  el.innerHTML = sessionQuiz.map((q, i) => {
+    const ok  = q.firstTry !== false;
+    const cls = ok ? 'bd-ok' : 'bd-retry';
+    const ico = ok ? '✓' : '↩';
+    const txt = q.q.length > 48 ? q.q.slice(0, 48) + '…' : q.q;
+    const t   = formatTime(questionTimes[i] ?? 0);
+    return `<div class="bd-row">
+      <span class="bd-q">Q${i + 1}</span>
+      <span class="${cls}">${ico}</span>
+      <span class="bd-text">${txt}</span>
+      <span class="bd-time">${t}</span>
+    </div>`;
+  }).join('');
+}
+
 function showScore() {
+  sessionTotalTime = Date.now() - sessionStartTime;
   document.getElementById('quiz-q').classList.remove('show');
   document.getElementById('quiz-opts-wrap').classList.remove('show');
 
@@ -779,6 +812,7 @@ function showScore() {
   document.getElementById('score-big').textContent   = score;
   document.getElementById('score-title').textContent = title;
   document.getElementById('score-sub').textContent   = sub;
+  renderBreakdown();
 
   // Hero Stones track: show closing message
   const outroEl = document.getElementById('track-outro');
@@ -825,6 +859,7 @@ function resetToTrackSelect() {
 
 function retryQuiz() {
   qIdx = 0; score = 0; answered = false;
+  questionTimes = []; sessionStartTime = Date.now();
   const pool = activeTrack === 'herostone' ? QUIZ_HEROSTONE : QUIZ_TEMPLE;
   sessionQuiz = shuffle(pool).slice(0, SESSION_SIZE);
   document.getElementById('score-overlay').className = '';
@@ -837,8 +872,30 @@ function retryQuiz() {
 /* ═══════════════════════════════════════════════════════════════
    EVENT WIRING
 ═══════════════════════════════════════════════════════════════ */
+function copySummary() {
+  const trackLabel = activeTrack === 'herostone' ? 'Hero Stones' : 'Temple Inscription';
+  const lines = [
+    `Lokakavya Heritage Quiz – ${trackLabel}`,
+    `Score: ${score} / ${sessionQuiz.length} | Total time: ${formatTime(sessionTotalTime)}`,
+    '',
+    ...sessionQuiz.map((q, i) => {
+      const ico = q.firstTry !== false ? '✓' : '↩';
+      const txt = q.q.length > 60 ? q.q.slice(0, 60) + '…' : q.q;
+      return `Q${i + 1} ${ico} ${formatTime(questionTimes[i] ?? 0)} – ${txt}`;
+    }),
+  ];
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = document.getElementById('copy-summary-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Summary';
+    }, 1800);
+  });
+}
+
 document.getElementById('retry-btn').addEventListener('click', retryQuiz);
 document.getElementById('continue-btn').addEventListener('click', showOutro);
+document.getElementById('copy-summary-btn').addEventListener('click', copySummary);
 document.getElementById('outro-track-btn').addEventListener('click', resetToTrackSelect);
 document.getElementById('outro-exit-btn').addEventListener('click', () => window.location.reload());
 document.getElementById('ts-home-btn').addEventListener('click', () => window.location.reload());

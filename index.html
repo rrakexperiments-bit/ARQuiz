@@ -280,7 +280,9 @@
       border: 1px solid hsl(20 54% 47% / 0.15);
       border-radius: 22px;
       padding: 28px 26px 26px;
-      width: 100%; max-width: 320px;
+      width: 100%; max-width: 340px;
+      max-height: 88vh;
+      overflow-y: auto;
       text-align: center;
       box-shadow: 0 8px 32px hsl(20 54% 47% / 0.1);
     }
@@ -303,7 +305,48 @@
     .score-big  { font-size: 34px; font-weight: 900; color: var(--lk-primary); line-height: 1; }
     .score-of   { font-size: 11px; color: hsl(19 27% 18% / 0.4); }
     .score-title { font-size: 18px; font-weight: 800; color: var(--lk-ink); margin: 14px 0 5px; }
-    .score-sub   { font-size: 13px; color: var(--lk-stone); margin-bottom: 20px; line-height: 1.4; }
+    .score-sub   { font-size: 13px; color: var(--lk-stone); margin-bottom: 10px; line-height: 1.4; }
+
+    .score-total-time {
+      font-size: 12px; color: var(--lk-stone);
+      margin-bottom: 14px;
+    }
+    .score-breakdown {
+      text-align: left;
+      border: 1px solid hsl(20 54% 47% / 0.12);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .bd-row {
+      display: grid;
+      grid-template-columns: 26px 18px 1fr auto;
+      gap: 5px;
+      align-items: center;
+      padding: 7px 10px;
+      font-size: 11px;
+      border-bottom: 1px solid hsl(20 54% 47% / 0.07);
+    }
+    .bd-row:last-child { border-bottom: none; }
+    .bd-q    { font-weight: 700; color: var(--lk-stone); }
+    .bd-ok   { color: var(--lk-correct); font-weight: 700; font-size: 12px; }
+    .bd-retry{ color: hsl(38 85% 48%);   font-weight: 700; font-size: 12px; }
+    .bd-text { color: var(--lk-ink); line-height: 1.3; overflow: hidden; }
+    .bd-time { color: var(--lk-stone); white-space: nowrap; padding-left: 4px; }
+
+    .copy-summary-btn {
+      width: 100%; padding: 10px 14px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: transparent;
+      border: 1px solid hsl(20 54% 47% / 0.25);
+      border-radius: 10px;
+      font-size: 13px; color: var(--lk-stone);
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: background .15s, color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .copy-summary-btn:hover { background: hsl(20 54% 47% / 0.07); color: var(--lk-ink); }
 
     .score-actions { display: flex; flex-direction: column; gap: 8px; }
 
@@ -860,7 +903,13 @@
     </div>
     <div class="score-title" id="score-title"></div>
     <div class="score-sub"   id="score-sub"></div>
+    <div class="score-total-time" id="score-total-time"></div>
+    <div class="score-breakdown"  id="score-breakdown"></div>
     <p id="track-outro" class="track-outro"></p>
+    <button class="copy-summary-btn" id="copy-summary-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy Summary
+    </button>
     <div class="score-actions">
       <button id="retry-btn">&#x21BA;&nbsp; Try Again</button>
       <button id="continue-btn">Continue &#8594;</button>
